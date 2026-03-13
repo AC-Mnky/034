@@ -29,6 +29,7 @@ public class ColorConfig : ScriptableObject
     public Color StartButtonColor = Color.green;
     public Color StopButtonColor = Color.red;
     public Color NextButtonColor = Color.blue;
+    public Color DisabledButtonColor = new Color(0.3f, 0.3f, 0.3f, 1f);
 
     [Header("Level Select - Level Buttons")]
     public Color CompletedLevelColor = Color.blue;

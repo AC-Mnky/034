@@ -60,7 +60,7 @@ public class DefaultConnectionStrategy : IConnectionStrategy
         var candidates = allNodes
             .Where(n => n != node && !n.IsInInventory)
             .Select(n => new { node = n, dist = Vector2.Distance(node.transform.position, n.transform.position) })
-            .Where(x => x.dist <= node.MaxConnectRadius)
+            .Where(x => x.dist >= node.MinConnectDistance && x.dist <= node.MaxConnectRadius)
             .OrderBy(x => x.dist)
             .Take(node.MaxConnectNumber)
             .ToList();
@@ -79,7 +79,7 @@ public class DefaultConnectionStrategy : IConnectionStrategy
             .Where(n => !mgr.HasConnectionBetween(node, n))
             .Where(n => !HasActiveConnectionTo(n, node))
             .Select(n => new { node = n, dist = Vector2.Distance(node.transform.position, n.transform.position) })
-            .Where(x => x.dist <= node.MaxConnectRadius)
+            .Where(x => x.dist >= node.MinConnectDistance && x.dist <= node.MaxConnectRadius)
             .OrderBy(x => x.dist)
             .Take(node.MaxConnectNumber - node.GetActiveConnectionCount())
             .Select(x => x.node)

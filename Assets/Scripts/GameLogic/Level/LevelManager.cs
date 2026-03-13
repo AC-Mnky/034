@@ -35,6 +35,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
     private GameObject _inventoryBg;
     private GameObject _buildAreaBg;
     private Canvas _uiCanvas;
+    private bool _startButtonInteractable = true;
 
     private void Awake()
     {
@@ -56,10 +57,42 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     private void Update()
     {
-        if (CurrentState == LevelState.Build && Input.GetKeyDown(KeyCode.R))
+        if (CurrentState == LevelState.Build)
         {
-            ResetToInitialBlueprint();
+            if (Input.GetKeyDown(KeyCode.R))
+                ResetToInitialBlueprint();
+
+            UpdateStartButtonState();
         }
+    }
+
+    private void UpdateStartButtonState()
+    {
+        var buildPoly = GetBuildAreaPolygon();
+        bool allInBuildArea = true;
+        List<(Node, Node)> previewConns = null;
+
+        foreach (var node in _connMgr.AllNodes)
+        {
+            if (!node.gameObject.activeSelf) continue;
+
+            var drag = node.GetComponent<NodeDragHandler>();
+            if (drag != null && drag.IsDragging)
+                previewConns = drag.PreviewConnections;
+
+            if (node.IsInInventory || !PointInPolygon(node.transform.position, buildPoly))
+                allInBuildArea = false;
+        }
+
+        bool canStart = allInBuildArea && _connMgr.AreAllNodesConnected(previewConns);
+        if (canStart == _startButtonInteractable) return;
+
+        _startButtonInteractable = canStart;
+        if (_actionButton == null) return;
+        _actionButton.ButtonColor = canStart
+            ? ColorConfig.Instance.StartButtonColor
+            : ColorConfig.Instance.DisabledButtonColor;
+        _actionButton.ApplyVisual();
     }
 
     private void LoadOrInitBlueprint()
@@ -246,7 +279,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
                 return true;
 
             case "Start":
-                if (CurrentState == LevelState.Build)
+                if (CurrentState == LevelState.Build && _startButtonInteractable)
                     EnterRunMode();
                 return true;
 

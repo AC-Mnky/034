@@ -5,6 +5,7 @@ public abstract class Node : MonoBehaviour
 {
     [Header("Connection Settings")]
     public float MaxConnectRadius = 3f;
+    public float MinConnectDistance = 2f;
     public int MaxConnectNumber = 3;
 
     [Header("Physics Properties")]

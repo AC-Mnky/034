@@ -15,6 +15,7 @@ public class NodeDragHandler : MonoBehaviour
     private ConnectionManager _connMgr;
     private List<(Node, Node)> _previewConnections = new List<(Node, Node)>();
 
+    public bool IsDragging => _isDragging;
     public List<(Node, Node)> PreviewConnections => _previewConnections;
 
     private void Awake()

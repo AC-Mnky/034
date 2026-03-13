@@ -8,7 +8,9 @@ public class GoalTrigger : MonoBehaviour
         if (node == null) return;
 
         if (LevelManager.Instance != null &&
-            LevelManager.Instance.CurrentState == LevelState.Run)
+            LevelManager.Instance.CurrentState == LevelState.Run &&
+            ConnectionManager.Instance != null &&
+            ConnectionManager.Instance.AreAllNodesConnected())
         {
             LevelManager.Instance.EnterVictoryMode();
         }

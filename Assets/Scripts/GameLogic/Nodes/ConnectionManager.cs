@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ConnectionManager : MonoBehaviour
@@ -74,6 +75,47 @@ public class ConnectionManager : MonoBehaviour
                 return true;
         }
         return false;
+    }
+
+    public bool AreAllNodesConnected(List<(Node, Node)> extraConnections = null)
+    {
+        var placed = AllNodes.Where(n => !n.IsInInventory && n.gameObject.activeSelf).ToList();
+        if (placed.Count == 0) return false;
+        if (placed.Count == 1) return true;
+
+        var visited = new HashSet<Node> { placed[0] };
+        var queue = new Queue<Node>();
+        queue.Enqueue(placed[0]);
+
+        while (queue.Count > 0)
+        {
+            var cur = queue.Dequeue();
+
+            foreach (var conn in AllConnections)
+            {
+                Node neighbor = null;
+                if (conn.NodeA == cur) neighbor = conn.NodeB;
+                else if (conn.NodeB == cur) neighbor = conn.NodeA;
+
+                if (neighbor != null && !neighbor.IsInInventory && visited.Add(neighbor))
+                    queue.Enqueue(neighbor);
+            }
+
+            if (extraConnections != null)
+            {
+                foreach (var (a, b) in extraConnections)
+                {
+                    Node neighbor = null;
+                    if (a == cur) neighbor = b;
+                    else if (b == cur) neighbor = a;
+
+                    if (neighbor != null && !neighbor.IsInInventory && visited.Add(neighbor))
+                        queue.Enqueue(neighbor);
+                }
+            }
+        }
+
+        return visited.Count == placed.Count;
     }
 
     public void InitializeAllForRun()
