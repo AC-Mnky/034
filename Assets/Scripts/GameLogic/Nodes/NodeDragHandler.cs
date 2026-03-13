@@ -32,6 +32,10 @@ public class NodeDragHandler : MonoBehaviour
     private void OnMouseDown()
     {
         if (_connMgr == null || _connMgr.CurrentState != LevelState.Build) return;
+        if (TriangleRotateUI.IsAnyHandleDragging) return;
+        if (IsMouseOnRotateHandle()) return;
+
+        TriangleRotateUI.OnNodePointerDown(_node);
 
         _isDragging = true;
         _startPosition = transform.position;
@@ -95,6 +99,22 @@ public class NodeDragHandler : MonoBehaviour
         {
             if (hit.gameObject == gameObject) continue;
             if (hit.GetComponent<Node>() != null)
+                return true;
+        }
+        return false;
+    }
+
+    private bool IsMouseOnRotateHandle()
+    {
+        if (_mainCamera == null) return false;
+        Vector3 screenPos = Input.mousePosition;
+        screenPos.z = -_mainCamera.transform.position.z;
+        Vector2 mouseWorld = _mainCamera.ScreenToWorldPoint(screenPos);
+
+        var hits = Physics2D.OverlapPointAll(mouseWorld);
+        foreach (var hit in hits)
+        {
+            if (hit.GetComponent<TriangleRotateHandle>() != null)
                 return true;
         }
         return false;

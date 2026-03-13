@@ -10,6 +10,7 @@ public class NodeData
     public bool isInInventory = true;
     public float posX;
     public float posY;
+    public float rotZ;
 }
 
 [System.Serializable]
@@ -65,7 +66,8 @@ public class BlueprintData
                 nodeType = nd.nodeType,
                 isInInventory = nd.isInInventory,
                 posX = nd.posX,
-                posY = nd.posY
+                posY = nd.posY,
+                rotZ = nd.rotZ
             });
         }
         foreach (var cd in connections)

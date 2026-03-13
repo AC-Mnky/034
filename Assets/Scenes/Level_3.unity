@@ -540,18 +540,21 @@ MonoBehaviour:
       isInInventory: 1
       posX: 0
       posY: 0
+      rotZ: 0
     - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
         type: 3}
       nodeType: 
       isInInventory: 1
       posX: 0
       posY: 0
+      rotZ: 0
     - prefab: {fileID: 4794396346771180178, guid: f250556f64016d2438b0eefcd633aa69,
         type: 3}
       nodeType: 
       isInInventory: 1
       posX: 0
       posY: 0
+      rotZ: 0
     connections: []
   UIButtonSize: 0.8
 --- !u!4 &605446348

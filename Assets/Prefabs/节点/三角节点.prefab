@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 4272119491942806764}
   - component: {fileID: 8199593164379271487}
   - component: {fileID: 6828103289731294819}
+  - component: {fileID: 113433815862787219}
   m_Layer: 0
   m_Name: "\u4E09\u89D2\u8282\u70B9"
   m_TagString: Untagged
@@ -220,7 +221,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 5b356efb3c38e0442bd0a491c9a59697, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -231,3 +232,20 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &113433815862787219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4794396346771180178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcd71784d870db84d83e49cc5861583e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  HandleDistance: 1.2
+  HandleRadius: 0.15
+  LineWidth: 0.05
+  LineColor: {r: 1, g: 1, b: 1, a: 1}
+  HandleColor: {r: 1, g: 1, b: 1, a: 1}

@@ -463,7 +463,8 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
                 nodeType = node.NodeType,
                 isInInventory = node.IsInInventory,
                 posX = node.IsInInventory ? 0f : node.transform.position.x,
-                posY = node.IsInInventory ? 0f : node.transform.position.y
+                posY = node.IsInInventory ? 0f : node.transform.position.y,
+                rotZ = node.transform.eulerAngles.z
             });
         }
 
@@ -507,7 +508,8 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
                 spawnPos = new Vector3(nd.posX, nd.posY, 0f);
             }
 
-            var go = Instantiate(prefab, spawnPos, prefab.transform.rotation);
+            var spawnRot = Quaternion.Euler(prefab.transform.eulerAngles.x, prefab.transform.eulerAngles.y, nd.rotZ);
+            var go = Instantiate(prefab, spawnPos, spawnRot);
             var node = go.GetComponent<Node>();
             if (node == null) continue;
 
