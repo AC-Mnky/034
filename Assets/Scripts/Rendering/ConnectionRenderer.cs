@@ -8,6 +8,7 @@ public class ConnectionRenderer : MonoBehaviour
     [Header("Line Settings")]
     public float LineWidth = 0.05f;
     public Color ConnectionColor = Color.white;
+    public Color ChargedConnectionColor = Color.green;
     public Color PreviewColor = new Color(1f, 1f, 1f, 0.4f);
     public Material LineMaterial;
 
@@ -30,14 +31,20 @@ public class ConnectionRenderer : MonoBehaviour
         if (_connMgr == null) return;
 
         _activeCount = 0;
+        CollectDragState(out var draggedNodes, out var mergedPreviews);
 
         foreach (var conn in _connMgr.AllConnections)
         {
             if (conn.IsBroken || conn.NodeA == null || conn.NodeB == null) continue;
-            DrawLine(conn.NodeA.transform.position, conn.NodeB.transform.position, ConnectionColor);
+            bool isDragRelated = draggedNodes.Contains(conn.NodeA) || draggedNodes.Contains(conn.NodeB);
+            bool electrified = isDragRelated
+                ? _connMgr.WillConnectionBeElectrified(conn.NodeA, conn.NodeB, mergedPreviews)
+                : conn.IsElectrified();
+            Color color = GetConnectionColor(electrified, isDragRelated);
+            DrawLine(conn.NodeA.transform.position, conn.NodeB.transform.position, color);
         }
 
-        DrawPreviews();
+        DrawPreviews(mergedPreviews);
 
         for (int i = _activeCount; i < _linePool.Count; i++)
         {
@@ -45,21 +52,50 @@ public class ConnectionRenderer : MonoBehaviour
         }
     }
 
-    private void DrawPreviews()
+    private void DrawPreviews(List<(Node, Node)> mergedPreviews)
     {
+        if (_connMgr.CurrentState != LevelState.Build) return;
+        if (mergedPreviews.Count == 0) return;
+
+        foreach (var (a, b) in mergedPreviews)
+        {
+            if (a == null || b == null) continue;
+            bool electrified = _connMgr.WillConnectionBeElectrified(a, b, mergedPreviews);
+            Color color = GetConnectionColor(electrified, true);
+            DrawLine(a.transform.position, b.transform.position, color);
+        }
+    }
+
+    private void CollectDragState(out HashSet<Node> draggedNodes, out List<(Node, Node)> mergedPreviews)
+    {
+        draggedNodes = new HashSet<Node>();
+        mergedPreviews = new List<(Node, Node)>();
         if (_connMgr.CurrentState != LevelState.Build) return;
 
         foreach (var node in _connMgr.AllNodes)
         {
             var drag = node.GetComponent<NodeDragHandler>();
-            if (drag == null) continue;
+            if (drag == null || !drag.IsDragging) continue;
 
-            foreach (var (a, b) in drag.PreviewConnections)
+            draggedNodes.Add(node);
+            var previews = drag.PreviewConnections;
+            for (int i = 0; i < previews.Count; i++)
             {
-                if (a == null || b == null) continue;
-                DrawLine(a.transform.position, b.transform.position, PreviewColor);
+                mergedPreviews.Add(previews[i]);
             }
         }
+    }
+
+    private Color GetConnectionColor(bool electrified, bool isFaded)
+    {
+        if (electrified)
+        {
+            return isFaded
+                ? new Color(ChargedConnectionColor.r, ChargedConnectionColor.g, ChargedConnectionColor.b, PreviewColor.a)
+                : ChargedConnectionColor;
+        }
+
+        return isFaded ? PreviewColor : ConnectionColor;
     }
 
     private void DrawLine(Vector3 from, Vector3 to, Color color)

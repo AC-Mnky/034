@@ -78,24 +78,36 @@ public class TriangleNodeGeometry : MonoBehaviour
         Vector3 b1 = new Vector3(tri2D[1].x, tri2D[1].y, Depth);
         Vector3 b2 = new Vector3(tri2D[2].x, tri2D[2].y, Depth);
 
-        _meshInstance.vertices = new[] { f0, f1, f2, b0, b1, b2 };
+        // Use per-triangle vertices to keep face normals flat and color/shading uniform per face.
+        _meshInstance.vertices = new[]
+        {
+            // Front / back
+            f0, f2, f1,
+            b0, b1, b2,
+
+            // Side face (edge 0-1)
+            f0, f1, b1,
+            f0, b1, b0,
+
+            // Side face (edge 1-2)
+            f1, f2, b2,
+            f1, b2, b1,
+
+            // Side face (edge 2-0)
+            f2, f0, b0,
+            f2, b0, b2
+        };
+
         _meshInstance.triangles = new[]
         {
-            // Front / back faces (double-sided)
-            0, 1, 2,  0, 2, 1,
-            3, 5, 4,  3, 4, 5,
-
-            // Side face (edge 0-1), double-sided
-            0, 1, 4,  0, 4, 3,
-            0, 4, 1,  0, 3, 4,
-
-            // Side face (edge 1-2), double-sided
-            1, 2, 5,  1, 5, 4,
-            1, 5, 2,  1, 4, 5,
-
-            // Side face (edge 2-0), double-sided
-            2, 0, 3,  2, 3, 5,
-            2, 3, 0,  2, 5, 3
+            0, 1, 2,
+            3, 4, 5,
+            6, 7, 8,
+            9, 10, 11,
+            12, 13, 14,
+            15, 16, 17,
+            18, 19, 20,
+            21, 22, 23
         };
 
         _meshInstance.RecalculateNormals();

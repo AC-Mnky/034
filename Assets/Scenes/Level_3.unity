@@ -480,8 +480,8 @@ Transform:
   m_GameObject: {fileID: 419683664}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.99, y: 0.98, z: 0}
-  m_LocalScale: {x: 4.95, y: 3.5375, z: 1}
+  m_LocalPosition: {x: -1.67, y: 1.1, z: 0}
+  m_LocalScale: {x: 6.55875, y: 4.510312, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 241861145}
@@ -534,7 +534,7 @@ MonoBehaviour:
     height: 1.5
   InitialBlueprint:
     nodes:
-    - prefab: {fileID: 5713757247159889912, guid: 429c7669e1057224a8298ec348bed5e3,
+    - prefab: {fileID: 5713757247159889912, guid: 169b1f13397738341bae42cd9ba9658a,
         type: 3}
       nodeType: 
       isInInventory: 1
@@ -548,13 +548,20 @@ MonoBehaviour:
       posX: 0
       posY: 0
       rotZ: 0
-    - prefab: {fileID: 4794396346771180178, guid: f250556f64016d2438b0eefcd633aa69,
+    - prefab: {fileID: 8048060526449056003, guid: 6dd013383fe4d8a4dad787d33f1f6f11,
         type: 3}
       nodeType: 
       isInInventory: 1
       posX: 0
       posY: 0
       rotZ: 0
+    - prefab: {fileID: 4794396346771180178, guid: 70ca908905c0f6d41884863569830435,
+        type: 3}
+      nodeType: 
+      isInInventory: 1
+      posX: 0
+      posY: 0
+      rotZ: -90
     connections: []
   UIButtonSize: 0.8
 --- !u!4 &605446348
@@ -681,6 +688,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   LineWidth: 0.05
   ConnectionColor: {r: 1, g: 1, b: 1, a: 1}
+  ChargedConnectionColor: {r: 0, g: 1, b: 0, a: 1}
   PreviewColor: {r: 1, g: 1, b: 1, a: 0.4}
   LineMaterial: {fileID: 0}
 --- !u!1 &704359233
@@ -833,13 +841,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 704359233}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0.09669218, w: 0.99531436}
-  m_LocalPosition: {x: 5.31, y: -1.49, z: 10}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.16, y: 0.05, z: 10}
   m_LocalScale: {x: 16.875, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -11.097}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &706120754
 GameObject:
   m_ObjectHideFlags: 0

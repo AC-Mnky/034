@@ -38,4 +38,8 @@ public class ColorConfig : ScriptableObject
 
     [Header("Level Select - Other")]
     public Color QuitButtonColor = Color.red;
+
+    [Header("Node - Materials")]
+    public Material UnchargedMaterial;
+    public Material ChargedMaterial;
 }

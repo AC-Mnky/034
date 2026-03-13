@@ -9,6 +9,7 @@ public class NodeRenderer : MonoBehaviour
     private Node _node;
     private SpriteRenderer _sr;
     private MeshRenderer _mr;
+    private bool? _lastChargedState;
 
     private void Awake()
     {
@@ -23,7 +24,29 @@ public class NodeRenderer : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (_node == null || _sr == null) return;
-        _sr.color = _node.IsInInventory ? InventoryColor : NormalColor;
+        if (_node == null) return;
+
+        if (_sr != null)
+            _sr.color = _node.IsInInventory ? InventoryColor : NormalColor;
+
+        UpdateMeshMaterial();
+    }
+
+    private void UpdateMeshMaterial()
+    {
+        if (_mr == null) return;
+        if (!_node.IsConductive) return;
+
+        bool isCharged = _node.HasElectricity;
+        if (_lastChargedState.HasValue && _lastChargedState.Value == isCharged) return;
+
+        var cfg = ColorConfig.Instance;
+        if (cfg == null) return;
+
+        Material target = isCharged ? cfg.ChargedMaterial : cfg.UnchargedMaterial;
+        if (target == null) return;
+
+        _mr.sharedMaterial = target;
+        _lastChargedState = isCharged;
     }
 }

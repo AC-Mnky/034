@@ -6,12 +6,16 @@ public abstract class Node : MonoBehaviour
     [Header("Connection Settings")]
     public float MaxConnectRadius = 3f;
     public float MinConnectRadius = 2f;
-    public int MaxConnectNumber = 3;
+    public int MaxConnectNumber = 10;
 
     [Header("Physics Properties")]
     public bool CanRotate;
     public bool CanCollide = true;
     public float Mass = 1f;
+
+    [Header("Electrical Properties")]
+    public bool CanCharge;
+    public bool CanConduct;
 
     public static float SpringK = 500f;
     public static float SpringDamping = 5f;
@@ -24,6 +28,9 @@ public abstract class Node : MonoBehaviour
 
     public Rigidbody2D Rb { get; private set; }
     public Collider2D Col { get; private set; }
+    public bool IsCharged { get; private set; }
+    public bool IsConductive => CanCharge || CanConduct;
+    public bool HasElectricity => CanCharge || IsCharged;
 
     public string NodeType => GetType().Name;
 
@@ -79,6 +86,18 @@ public abstract class Node : MonoBehaviour
     }
 
     public virtual void OnRuntimeClick() { }
+
+    // Reference angular speed used by connection angular springs (rad/s).
+    // Positive means CCW in Unity 2D; negative means clockwise.
+    public virtual float GetConnectionReferenceAngularSpeedRad()
+    {
+        return 0f;
+    }
+
+    public void SetChargedState(bool isCharged)
+    {
+        IsCharged = isCharged;
+    }
 
     public int GetActiveConnectionCount()
     {

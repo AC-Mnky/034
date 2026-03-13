@@ -11,6 +11,8 @@ public class NodeConnection
     private float _initialRelAngleB;
     private float _prevRelAngleA;
     private float _prevRelAngleB;
+    private float _referenceAngleOffsetA;
+    private float _referenceAngleOffsetB;
 
     public NodeConnection(Node a, Node b)
     {
@@ -25,6 +27,8 @@ public class NodeConnection
         IsBroken = false;
 
         float rawAngle = Mathf.Atan2(delta.y, delta.x);
+        _referenceAngleOffsetA = 0f;
+        _referenceAngleOffsetB = 0f;
 
         if (NodeA.CanRotate)
         {
@@ -82,9 +86,11 @@ public class NodeConnection
             float rawRelAngle = rawAngle - nodeAngleRad;
             float relAngle = SpringPhysics.UnwrapAngle(rawRelAngle, _prevRelAngleA);
             _prevRelAngleA = relAngle;
+            _referenceAngleOffsetA += NodeA.GetConnectionReferenceAngularSpeedRad() * Time.fixedDeltaTime;
+            float targetRelAngle = _initialRelAngleA + _referenceAngleOffsetA;
 
             float torque = SpringPhysics.ComputeAngularTorque(
-                relAngle, _initialRelAngleA,
+                relAngle, targetRelAngle,
                 Node.AngularSpringK, NodeA.Rb.angularVelocity * Mathf.Deg2Rad,
                 Node.AngularSpringDamping);
 
@@ -102,9 +108,11 @@ public class NodeConnection
             float rawRelAngle = (rawAngle + Mathf.PI) - nodeAngleRad;
             float relAngle = SpringPhysics.UnwrapAngle(rawRelAngle, _prevRelAngleB);
             _prevRelAngleB = relAngle;
+            _referenceAngleOffsetB += NodeB.GetConnectionReferenceAngularSpeedRad() * Time.fixedDeltaTime;
+            float targetRelAngle = _initialRelAngleB + _referenceAngleOffsetB;
 
             float torque = SpringPhysics.ComputeAngularTorque(
-                relAngle, _initialRelAngleB,
+                relAngle, targetRelAngle,
                 Node.AngularSpringK, NodeB.Rb.angularVelocity * Mathf.Deg2Rad,
                 Node.AngularSpringDamping);
 
@@ -120,5 +128,11 @@ public class NodeConnection
     public bool Involves(Node node)
     {
         return NodeA == node || NodeB == node;
+    }
+
+    public bool IsElectrified()
+    {
+        if (NodeA == null || NodeB == null) return false;
+        return NodeA.HasElectricity && NodeB.HasElectricity;
     }
 }

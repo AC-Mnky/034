@@ -102,10 +102,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxConnectRadius: 3
   MinConnectRadius: 2
-  MaxConnectNumber: 3
+  MaxConnectNumber: 10
   CanRotate: 0
   CanCollide: 1
   Mass: 1
+  CanCharge: 0
+  CanConduct: 0
   IsInInventory: 1
 --- !u!114 &6236849240986194929
 MonoBehaviour:

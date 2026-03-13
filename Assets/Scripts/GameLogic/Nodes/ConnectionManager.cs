@@ -28,12 +28,14 @@ public class ConnectionManager : MonoBehaviour
     {
         if (!AllNodes.Contains(node))
             AllNodes.Add(node);
+        RefreshChargeStates();
     }
 
     public void UnregisterNode(Node node)
     {
         AllNodes.Remove(node);
         RemoveConnectionsOf(node);
+        RefreshChargeStates();
     }
 
     public NodeConnection AddConnection(Node a, Node b)
@@ -43,6 +45,7 @@ public class ConnectionManager : MonoBehaviour
         var conn = new NodeConnection(a, b);
         AllConnections.Add(conn);
         a.ActiveConnections.Add(conn);
+        RefreshChargeStates();
         return conn;
     }
 
@@ -51,6 +54,7 @@ public class ConnectionManager : MonoBehaviour
         AllConnections.Remove(conn);
         if (conn.NodeA != null)
             conn.NodeA.ActiveConnections.Remove(conn);
+        RefreshChargeStates();
     }
 
     public void RemoveConnectionsOf(Node node)
@@ -64,6 +68,7 @@ public class ConnectionManager : MonoBehaviour
                 AllConnections.RemoveAt(i);
             }
         }
+        RefreshChargeStates();
     }
 
     public bool HasConnectionBetween(Node a, Node b)
@@ -124,6 +129,7 @@ public class ConnectionManager : MonoBehaviour
         {
             conn.Initialize();
         }
+        RefreshChargeStates();
     }
 
     public void ClearAll()
@@ -133,6 +139,7 @@ public class ConnectionManager : MonoBehaviour
         {
             node.ActiveConnections.Clear();
         }
+        RefreshChargeStates();
     }
 
     public void ClearAllNodes()
@@ -162,5 +169,76 @@ public class ConnectionManager : MonoBehaviour
                 AllConnections.RemoveAt(i);
             }
         }
+
+        RefreshChargeStates();
+    }
+
+    public void RefreshChargeStates()
+    {
+        var poweredNodes = GetPoweredNodes(null);
+        for (int i = 0; i < AllNodes.Count; i++)
+        {
+            var node = AllNodes[i];
+            if (node == null) continue;
+            node.SetChargedState(!node.CanCharge && poweredNodes.Contains(node));
+        }
+    }
+
+    public bool WillConnectionBeElectrified(Node a, Node b, List<(Node, Node)> extraConnections)
+    {
+        if (!IsNodeValidForChargeNetwork(a) || !IsNodeValidForChargeNetwork(b)) return false;
+        var poweredNodes = GetPoweredNodes(extraConnections);
+        return poweredNodes.Contains(a) && poweredNodes.Contains(b);
+    }
+
+    private HashSet<Node> GetPoweredNodes(List<(Node, Node)> extraConnections)
+    {
+        var queue = new Queue<Node>();
+        var visited = new HashSet<Node>();
+        for (int i = 0; i < AllNodes.Count; i++)
+        {
+            var node = AllNodes[i];
+            if (!IsNodeValidForChargeNetwork(node)) continue;
+            if (!node.CanCharge) continue;
+            if (!node.IsConductive) continue;
+            if (visited.Add(node))
+                queue.Enqueue(node);
+        }
+
+        while (queue.Count > 0)
+        {
+            var cur = queue.Dequeue();
+            for (int i = 0; i < AllConnections.Count; i++)
+            {
+                var conn = AllConnections[i];
+                if (conn == null || conn.IsBroken) continue;
+                TryVisitNeighbor(cur, conn.NodeA, conn.NodeB, visited, queue);
+                TryVisitNeighbor(cur, conn.NodeB, conn.NodeA, visited, queue);
+            }
+
+            if (extraConnections == null) continue;
+            for (int i = 0; i < extraConnections.Count; i++)
+            {
+                var (a, b) = extraConnections[i];
+                TryVisitNeighbor(cur, a, b, visited, queue);
+                TryVisitNeighbor(cur, b, a, visited, queue);
+            }
+        }
+
+        return visited;
+    }
+
+    private static void TryVisitNeighbor(Node cur, Node from, Node to, HashSet<Node> visited, Queue<Node> queue)
+    {
+        if (from != cur) return;
+        if (!IsNodeValidForChargeNetwork(to)) return;
+        if (!to.IsConductive) return;
+        if (!visited.Add(to)) return;
+        queue.Enqueue(to);
+    }
+
+    private static bool IsNodeValidForChargeNetwork(Node node)
+    {
+        return node != null && !node.IsInInventory && node.gameObject.activeSelf;
     }
 }
