@@ -7,9 +7,6 @@ public class ConnectionRenderer : MonoBehaviour
 
     [Header("Line Settings")]
     public float LineWidth = 0.05f;
-    public Color ConnectionColor = Color.white;
-    public Color ChargedConnectionColor = Color.green;
-    public Color PreviewColor = new Color(1f, 1f, 1f, 0.4f);
     public Material LineMaterial;
 
     private ConnectionManager _connMgr;
@@ -88,14 +85,19 @@ public class ConnectionRenderer : MonoBehaviour
 
     private Color GetConnectionColor(bool electrified, bool isFaded)
     {
+        var cfg = ConnectionColorConfig.Instance;
+        Color connectionColor = cfg != null ? cfg.ConnectionColor : Color.white;
+        Color chargedColor = cfg != null ? cfg.ChargedConnectionColor : Color.green;
+        Color previewColor = cfg != null ? cfg.PreviewColor : new Color(1f, 1f, 1f, 0.4f);
+
         if (electrified)
         {
             return isFaded
-                ? new Color(ChargedConnectionColor.r, ChargedConnectionColor.g, ChargedConnectionColor.b, PreviewColor.a)
-                : ChargedConnectionColor;
+                ? new Color(chargedColor.r, chargedColor.g, chargedColor.b, previewColor.a)
+                : chargedColor;
         }
 
-        return isFaded ? PreviewColor : ConnectionColor;
+        return isFaded ? previewColor : connectionColor;
     }
 
     private void DrawLine(Vector3 from, Vector3 to, Color color)

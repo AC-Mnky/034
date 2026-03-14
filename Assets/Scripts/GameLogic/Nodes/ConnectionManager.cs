@@ -188,53 +188,51 @@ public class ConnectionManager : MonoBehaviour
     {
         if (!IsNodeValidForChargeNetwork(a) || !IsNodeValidForChargeNetwork(b)) return false;
         var poweredNodes = GetPoweredNodes(extraConnections);
-        return poweredNodes.Contains(a) && poweredNodes.Contains(b);
+        return IsChargedConnectionPair(a, b, poweredNodes);
     }
 
     private HashSet<Node> GetPoweredNodes(List<(Node, Node)> extraConnections)
     {
-        var queue = new Queue<Node>();
-        var visited = new HashSet<Node>();
+        var powered = new HashSet<Node>();
         for (int i = 0; i < AllNodes.Count; i++)
         {
             var node = AllNodes[i];
             if (!IsNodeValidForChargeNetwork(node)) continue;
             if (!node.CanCharge) continue;
-            if (!node.IsConductive) continue;
-            if (visited.Add(node))
-                queue.Enqueue(node);
+            powered.Add(node);
         }
 
-        while (queue.Count > 0)
+        for (int i = 0; i < AllConnections.Count; i++)
         {
-            var cur = queue.Dequeue();
-            for (int i = 0; i < AllConnections.Count; i++)
-            {
-                var conn = AllConnections[i];
-                if (conn == null || conn.IsBroken) continue;
-                TryVisitNeighbor(cur, conn.NodeA, conn.NodeB, visited, queue);
-                TryVisitNeighbor(cur, conn.NodeB, conn.NodeA, visited, queue);
-            }
+            var conn = AllConnections[i];
+            if (conn == null || conn.IsBroken) continue;
+            TryMarkDirectPowered(conn.NodeA, conn.NodeB, powered);
+        }
 
-            if (extraConnections == null) continue;
+        if (extraConnections != null)
+        {
             for (int i = 0; i < extraConnections.Count; i++)
             {
                 var (a, b) = extraConnections[i];
-                TryVisitNeighbor(cur, a, b, visited, queue);
-                TryVisitNeighbor(cur, b, a, visited, queue);
+                TryMarkDirectPowered(a, b, powered);
             }
         }
 
-        return visited;
+        return powered;
     }
 
-    private static void TryVisitNeighbor(Node cur, Node from, Node to, HashSet<Node> visited, Queue<Node> queue)
+    private static void TryMarkDirectPowered(Node a, Node b, HashSet<Node> powered)
     {
-        if (from != cur) return;
-        if (!IsNodeValidForChargeNetwork(to)) return;
-        if (!to.IsConductive) return;
-        if (!visited.Add(to)) return;
-        queue.Enqueue(to);
+        if (!IsNodeValidForChargeNetwork(a) || !IsNodeValidForChargeNetwork(b)) return;
+        if (a.CanCharge && b.IsConductive) powered.Add(b);
+        if (b.CanCharge && a.IsConductive) powered.Add(a);
+    }
+
+    private static bool IsChargedConnectionPair(Node a, Node b, HashSet<Node> poweredNodes)
+    {
+        bool aIsChargedReceiver = !a.CanCharge && poweredNodes.Contains(a);
+        bool bIsChargedReceiver = !b.CanCharge && poweredNodes.Contains(b);
+        return (a.CanCharge && bIsChargedReceiver) || (b.CanCharge && aIsChargedReceiver);
     }
 
     private static bool IsNodeValidForChargeNetwork(Node node)

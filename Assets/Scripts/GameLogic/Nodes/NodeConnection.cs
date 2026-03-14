@@ -134,6 +134,7 @@ public class NodeConnection
     public bool IsElectrified()
     {
         if (NodeA == null || NodeB == null) return false;
-        return NodeA.HasElectricity && NodeB.HasElectricity;
+        return (NodeA.CanCharge && NodeB.IsCharged) ||
+               (NodeB.CanCharge && NodeA.IsCharged);
     }
 }
