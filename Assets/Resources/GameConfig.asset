@@ -14,16 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   InitialUnlockedLevelNum: 1
   LevelSelectSceneName: LevelSelect
-  LevelScenePrefix: Level_
   MaxHorizontalSpan: 0.4
   MaxVerticalSpan: 0.4
   LevelSceneNames:
-  - Level_0
-  - Level_1
-  - Level_2
-  - Level_3
-  - Level_001
-  - Level_101
-  - Level_201
-  - Level_202
-  - Level_203
+  - Level_0001
+  - Level_0002
+  - Level_0003
+  - Level_0004
+  - Level_0005
+  - Level_0006
+  - Level_0007
+  - Level_0008
+  - Level_0009
+  - Level_0010
+  - Level_0011
+  - Level_0012
