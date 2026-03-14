@@ -10,9 +10,6 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     public static LevelManager Instance { get; private set; }
     public static bool IsInputLocked { get; private set; }
 
-    [Header("Level Config")]
-    public int LevelIndex;
-
     [Header("Scene References")]
     public List<Transform> BuildAreaVertices = new List<Transform>();
     public Transform IntroCameraAnchor;
@@ -44,6 +41,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     private Canvas _uiCanvas;
     private bool _startButtonInteractable = true;
     private string CurrentSceneName => SceneManager.GetActiveScene().name;
+    public int LevelIndex => ResolveLevelIndexBySceneName();
     private Coroutine _buildIntroRoutine;
     private Coroutine _hoverRecoverRoutine;
     private bool _buildIntroFinished;
@@ -119,7 +117,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
     private void LoadOrInitBlueprint()
     {
-        var loaded = BlueprintData.LoadBlueprint(CurrentSceneName, LevelIndex);
+        var loaded = BlueprintData.LoadBlueprint(CurrentSceneName);
         if (loaded != null)
         {
             ResolvePrefabsFromInitial(loaded);
@@ -133,7 +131,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
     private void ResetToInitialBlueprint()
     {
-        BlueprintData.DeleteBlueprint(CurrentSceneName, LevelIndex);
+        BlueprintData.DeleteBlueprint(CurrentSceneName);
         _memoryBlueprint = InitialBlueprint.DeepCopy();
         RestoreFromBlueprint(_memoryBlueprint);
         SetupAllNodesForBuild();
@@ -256,7 +254,15 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
                 if (CurrentState == LevelState.Victory)
                 {
                     SaveBlueprintToDisk();
-                    int next = LevelIndex + 1;
+                    int current = LevelIndex;
+                    if (current < 0)
+                    {
+                        Debug.LogWarning($"Current scene '{CurrentSceneName}' is not listed in GameConfig.LevelSceneNames.");
+                        SceneManager.LoadScene(GameConfig.Instance.LevelSelectSceneName);
+                        return true;
+                    }
+
+                    int next = current + 1;
                     if (next >= GameConfig.Instance.TotalLevelNum)
                         SceneManager.LoadScene(GameConfig.Instance.LevelSelectSceneName);
                     else
@@ -607,6 +613,12 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
             _areaVisualController.CancelFadeAndRestoreColors();
         if (_partAppearController != null)
             _partAppearController.CancelHiddenFadeAndRestore();
+    }
+
+    private int ResolveLevelIndexBySceneName()
+    {
+        var cfg = GameConfig.Instance;
+        return cfg != null ? cfg.GetLevelSceneIndex(CurrentSceneName) : -1;
     }
 
     private void UpdatePreviewButtonVisibility()

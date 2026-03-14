@@ -47,11 +47,6 @@ public class BlueprintData
         return sb.ToString();
     }
 
-    private static string GetFilePath(int levelIndex)
-    {
-        return Path.Combine(Application.persistentDataPath, $"blueprint_{levelIndex}.json");
-    }
-
     private static string GetFilePath(string sceneName)
     {
         return Path.Combine(Application.persistentDataPath, $"blueprint_{SanitizeFileKey(sceneName)}.json");
@@ -63,7 +58,7 @@ public class BlueprintData
         File.WriteAllText(GetFilePath(sceneName), json);
     }
 
-    public static BlueprintData LoadBlueprint(string sceneName, int legacyLevelIndex = -1)
+    public static BlueprintData LoadBlueprint(string sceneName)
     {
         string path = GetFilePath(sceneName);
         if (File.Exists(path))
@@ -72,31 +67,14 @@ public class BlueprintData
             return JsonUtility.FromJson<BlueprintData>(json);
         }
 
-        if (legacyLevelIndex >= 0)
-        {
-            string legacyPath = GetFilePath(legacyLevelIndex);
-            if (File.Exists(legacyPath))
-            {
-                string json = File.ReadAllText(legacyPath);
-                return JsonUtility.FromJson<BlueprintData>(json);
-            }
-        }
-
         return null;
     }
 
-    public static void DeleteBlueprint(string sceneName, int legacyLevelIndex = -1)
+    public static void DeleteBlueprint(string sceneName)
     {
         string path = GetFilePath(sceneName);
         if (File.Exists(path))
             File.Delete(path);
-
-        if (legacyLevelIndex >= 0)
-        {
-            string legacyPath = GetFilePath(legacyLevelIndex);
-            if (File.Exists(legacyPath))
-                File.Delete(legacyPath);
-        }
     }
 
     public static void DeleteAllBlueprints()

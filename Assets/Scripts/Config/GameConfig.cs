@@ -36,4 +36,10 @@ public class GameConfig : ScriptableObject
     public List<string> LevelSceneNames;
 
     public string GetLevelSceneName(int index) => LevelSceneNames[index];
+
+    public int GetLevelSceneIndex(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName) || LevelSceneNames == null) return -1;
+        return LevelSceneNames.IndexOf(sceneName);
+    }
 }
