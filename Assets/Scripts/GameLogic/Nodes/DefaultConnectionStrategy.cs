@@ -39,7 +39,8 @@ public class DefaultConnectionStrategy : IConnectionStrategy
                 // Other nodes' active connections to this node: break only if
                 // distance exceeds the initiator's MaxConnectRadius.
                 float dist = Vector2.Distance(node.transform.position, conn.NodeA.transform.position);
-                if (dist > conn.NodeA.MaxConnectRadius || dist < conn.NodeA.MinConnectRadius)
+                var cfg = NodeConfig.Instance;
+                if (dist > cfg.MaxConnectRadius || dist < cfg.MinConnectRadius)
                 {
                     toRemove.Add(conn);
                 }
@@ -55,14 +56,15 @@ public class DefaultConnectionStrategy : IConnectionStrategy
     public List<(Node, Node)> GetPreviewConnections(Node node, List<Node> allNodes)
     {
         if (node.IsInInventory) return new List<(Node, Node)>();
+        var cfg = NodeConfig.Instance;
 
         var result = new List<(Node, Node)>();
         var candidates = allNodes
             .Where(n => n != node && !n.IsInInventory)
             .Select(n => new { node = n, dist = Vector2.Distance(node.transform.position, n.transform.position) })
-            .Where(x => x.dist >= node.MinConnectRadius && x.dist <= node.MaxConnectRadius)
+            .Where(x => x.dist >= cfg.MinConnectRadius && x.dist <= cfg.MaxConnectRadius)
             .OrderBy(x => x.dist)
-            .Take(node.MaxConnectNumber)
+            .Take(cfg.MaxConnectNumber)
             .ToList();
 
         foreach (var c in candidates)
@@ -74,14 +76,15 @@ public class DefaultConnectionStrategy : IConnectionStrategy
 
     private List<Node> GetCandidatesInternal(Node node, List<Node> allNodes, ConnectionManager mgr)
     {
+        var cfg = NodeConfig.Instance;
         return allNodes
             .Where(n => n != node && !n.IsInInventory)
             .Where(n => !mgr.HasConnectionBetween(node, n))
             .Where(n => !HasActiveConnectionTo(n, node))
             .Select(n => new { node = n, dist = Vector2.Distance(node.transform.position, n.transform.position) })
-            .Where(x => x.dist >= node.MinConnectRadius && x.dist <= node.MaxConnectRadius)
+            .Where(x => x.dist >= cfg.MinConnectRadius && x.dist <= cfg.MaxConnectRadius)
             .OrderBy(x => x.dist)
-            .Take(node.MaxConnectNumber - node.GetActiveConnectionCount())
+            .Take(cfg.MaxConnectNumber - node.GetActiveConnectionCount())
             .Select(x => x.node)
             .ToList();
     }

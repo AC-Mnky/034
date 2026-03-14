@@ -32,13 +32,13 @@ public class NodeConnection
 
         if (NodeA.CanRotate)
         {
-            float nodeAngle = NodeA.transform.eulerAngles.z * Mathf.Deg2Rad;
+            float nodeAngle = NodeA.Rb.rotation * Mathf.Deg2Rad;
             _initialRelAngleA = rawAngle - nodeAngle;
             _prevRelAngleA = _initialRelAngleA;
         }
         if (NodeB.CanRotate)
         {
-            float nodeAngle = NodeB.transform.eulerAngles.z * Mathf.Deg2Rad;
+            float nodeAngle = NodeB.Rb.rotation * Mathf.Deg2Rad;
             _initialRelAngleB = (rawAngle + Mathf.PI) - nodeAngle;
             _prevRelAngleB = _initialRelAngleB;
         }
@@ -59,8 +59,9 @@ public class NodeConnection
         Vector2 velB = NodeB.Rb.velocity;
 
         float dist = Vector2.Distance(posA, posB);
+        var cfg = NodeConfig.Instance;
 
-        if (Mathf.Abs(dist - RestLength) > Node.SpringBreakLength)
+        if (Mathf.Abs(dist - RestLength) > cfg.SpringBreakLength)
         {
             IsBroken = true;
             return;
@@ -69,7 +70,7 @@ public class NodeConnection
         // Radial spring force
         Vector2 springForce = SpringPhysics.ComputeSpringForce(
             posA, posB, velA, velB,
-            RestLength, Node.SpringK, Node.SpringDamping);
+            RestLength, cfg.SpringK, cfg.SpringDamping);
 
         NodeA.Rb.AddForce(springForce);
         NodeB.Rb.AddForce(-springForce);
@@ -82,7 +83,7 @@ public class NodeConnection
 
         if (NodeA.CanRotate)
         {
-            float nodeAngleRad = NodeA.transform.eulerAngles.z * Mathf.Deg2Rad;
+            float nodeAngleRad = NodeA.Rb.rotation * Mathf.Deg2Rad;
             float rawRelAngle = rawAngle - nodeAngleRad;
             float relAngle = SpringPhysics.UnwrapAngle(rawRelAngle, _prevRelAngleA);
             _prevRelAngleA = relAngle;
@@ -91,8 +92,8 @@ public class NodeConnection
 
             float torque = SpringPhysics.ComputeAngularTorque(
                 relAngle, targetRelAngle,
-                Node.AngularSpringK, NodeA.Rb.angularVelocity * Mathf.Deg2Rad,
-                Node.AngularSpringDamping);
+                cfg.AngularSpringK, NodeA.Rb.angularVelocity * Mathf.Deg2Rad,
+                cfg.AngularSpringDamping);
 
             NodeA.Rb.AddTorque(torque);
 
@@ -104,7 +105,7 @@ public class NodeConnection
 
         if (NodeB.CanRotate)
         {
-            float nodeAngleRad = NodeB.transform.eulerAngles.z * Mathf.Deg2Rad;
+            float nodeAngleRad = NodeB.Rb.rotation * Mathf.Deg2Rad;
             float rawRelAngle = (rawAngle + Mathf.PI) - nodeAngleRad;
             float relAngle = SpringPhysics.UnwrapAngle(rawRelAngle, _prevRelAngleB);
             _prevRelAngleB = relAngle;
@@ -113,8 +114,8 @@ public class NodeConnection
 
             float torque = SpringPhysics.ComputeAngularTorque(
                 relAngle, targetRelAngle,
-                Node.AngularSpringK, NodeB.Rb.angularVelocity * Mathf.Deg2Rad,
-                Node.AngularSpringDamping);
+                cfg.AngularSpringK, NodeB.Rb.angularVelocity * Mathf.Deg2Rad,
+                cfg.AngularSpringDamping);
 
             NodeB.Rb.AddTorque(torque);
 
