@@ -17,7 +17,7 @@ public abstract class Node : MonoBehaviour
     public bool CanCharge;
     public bool CanConduct;
 
-    public static float SpringK = 500f;
+    public static float SpringK = 125f;
     public static float SpringDamping = 5f;
     public static float SpringBreakLength = 2f;
     public static float AngularSpringK = 200f;
