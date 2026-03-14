@@ -12,9 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a749259b32699f846ae79f7160b29c70, type: 3}
   m_Name: GameConfig
   m_EditorClassIdentifier: 
-  TotalLevelNum: 4
   InitialUnlockedLevelNum: 1
   LevelSelectSceneName: LevelSelect
   LevelScenePrefix: Level_
   MaxHorizontalSpan: 0.4
   MaxVerticalSpan: 0.4
+  LevelSceneNames:
+  - Level_0
+  - Level_1
+  - Level_2
+  - Level_3
+  - Level_001
+  - Level_101
+  - Level_201
+  - Level_202
+  - Level_203

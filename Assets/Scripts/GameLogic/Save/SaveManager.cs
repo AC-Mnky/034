@@ -10,30 +10,33 @@ public class SaveManager
     private const string SaveFileName = "save.json";
     private SavePayload _payload;
 
-    public List<int> CompletedLevelList => _payload.completedLevels;
+    public List<string> CompletedLevelSceneList => _payload.completedLevelScenes;
 
     private SaveManager()
     {
         Load();
     }
 
-    public void CompleteLevel(int levelIndex)
+    public void CompleteLevel(string sceneName)
     {
-        if (!_payload.completedLevels.Contains(levelIndex))
+        if (string.IsNullOrEmpty(sceneName)) return;
+        if (!_payload.completedLevelScenes.Contains(sceneName))
         {
-            _payload.completedLevels.Add(levelIndex);
+            _payload.completedLevelScenes.Add(sceneName);
             Save();
         }
     }
 
     public bool IsLevelCompleted(int levelIndex)
     {
-        return _payload.completedLevels.Contains(levelIndex);
+        if (levelIndex < 0 || levelIndex >= GameConfig.Instance.TotalLevelNum) return false;
+        string sceneName = GameConfig.Instance.GetLevelSceneName(levelIndex);
+        return _payload.completedLevelScenes.Contains(sceneName);
     }
 
     public int GetUnlockedCount()
     {
-        int count = _payload.completedLevels.Count + GameConfig.Instance.InitialUnlockedLevelNum;
+        int count = _payload.completedLevelScenes.Count + GameConfig.Instance.InitialUnlockedLevelNum;
         return Mathf.Min(count, GameConfig.Instance.TotalLevelNum);
     }
 
@@ -64,6 +67,23 @@ public class SaveManager
         {
             string json = File.ReadAllText(path);
             _payload = JsonUtility.FromJson<SavePayload>(json);
+            if (_payload == null) _payload = new SavePayload();
+            if (_payload.completedLevelScenes == null) _payload.completedLevelScenes = new List<string>();
+            if (_payload.completedLevels == null) _payload.completedLevels = new List<int>();
+
+            // Migrate old index-based save data into scene-name-based save data.
+            bool migrated = false;
+            for (int i = 0; i < _payload.completedLevels.Count; i++)
+            {
+                int levelIndex = _payload.completedLevels[i];
+                if (levelIndex < 0 || levelIndex >= GameConfig.Instance.TotalLevelNum) continue;
+                string sceneName = GameConfig.Instance.GetLevelSceneName(levelIndex);
+                if (string.IsNullOrEmpty(sceneName)) continue;
+                if (_payload.completedLevelScenes.Contains(sceneName)) continue;
+                _payload.completedLevelScenes.Add(sceneName);
+                migrated = true;
+            }
+            if (migrated) Save();
         }
         else
         {
@@ -74,6 +94,9 @@ public class SaveManager
     [System.Serializable]
     private class SavePayload
     {
+        // New format: stable scene-name identifiers.
+        public List<string> completedLevelScenes = new List<string>();
+        // Legacy format for migration only.
         public List<int> completedLevels = new List<int>();
     }
 }

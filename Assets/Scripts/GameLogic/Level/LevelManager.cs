@@ -386,7 +386,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         CurrentState = LevelState.Victory;
         _connMgr.CurrentState = LevelState.Victory;
 
-        SaveManager.Instance.CompleteLevel(LevelIndex);
+        SaveManager.Instance.CompleteLevel(SceneManager.GetActiveScene().name);
 
         SetActionButton("Next", ButtonShape.TriangleRight, ColorConfig.Instance.NextButtonColor);
     }
