@@ -117,9 +117,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc9bf3815d46bc64988f169237d3e40d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxConnectRadius: 3
-  MinConnectRadius: 2
-  MaxConnectNumber: 10
   CanRotate: 0
   CanCollide: 1
   Mass: 1

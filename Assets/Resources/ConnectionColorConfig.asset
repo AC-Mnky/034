@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f1c5a2308b089a45871e6ae74886426, type: 3}
   m_Name: ConnectionColorConfig
   m_EditorClassIdentifier: 
-  ConnectionColor: {r: 1, g: 1, b: 1, a: 1}
-  ChargedConnectionColor: {r: 0, g: 0.992331, b: 1, a: 1}
-  PreviewColor: {r: 1, g: 1, b: 1, a: 0.4}
+  ConnectionColor: {r: 1, g: 1, b: 1, a: 0.83137256}
+  ChargedConnectionColor: {r: 0.9960785, g: 0.9960785, b: 0.19607845, a: 1}
+  PreviewColor: {r: 0.8490566, g: 0.8490566, b: 0.8490566, a: 0.12941177}

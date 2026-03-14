@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
-    path: Assets/Scenes/Level_0.unity
+    path: Assets/Scenes/Level_0002.unity
     guid: 8ebf645a160c6dc40bc6997da5cf4f82
   - enabled: 1
     path: Assets/Scenes/Level_1.unity
@@ -18,24 +18,24 @@ EditorBuildSettings:
     path: Assets/Scenes/Level_2.unity
     guid: fefdc6026a8d1b64092f9d71b998040d
   - enabled: 1
-    path: Assets/Scenes/Level_3.unity
+    path: Assets/Scenes/Level_0007.unity
     guid: 6b44b1a9057b1804ba640053c173c341
   - enabled: 1
     path: Assets/Scenes/LevelSelect.unity
     guid: 327755bfc90928e48bfc134bd844d81b
   - enabled: 1
-    path: Assets/Scenes/Wn/Level_001.unity
+    path: Assets/Scenes/Level_0001.unity
     guid: e263c009167483a4fb18ca9a29c806b3
   - enabled: 1
-    path: Assets/Scenes/Wn/Level_101.unity
+    path: Assets/Scenes/Level_0003.unity
     guid: 44ed583c7635f5a4e839913e117a38c9
   - enabled: 1
-    path: Assets/Scenes/Wn/Level_201.unity
+    path: Assets/Scenes/Level_0005.unity
     guid: afa139760e002c8499d02375cfc3541f
   - enabled: 1
-    path: Assets/Scenes/Wn/Level_202.unity
+    path: Assets/Scenes/Level_0008.unity
     guid: 53e1fce3b9163744d9e664b1dd8beb16
   - enabled: 1
-    path: Assets/Scenes/Wn/Level_203.unity
+    path: Assets/Scenes/Level_0011.unity
     guid: 1809b634e5fab824f88c7a37ce20080a
   m_configObjects: {}

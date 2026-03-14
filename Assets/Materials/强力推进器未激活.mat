@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: "\u666E\u901A"
+  m_Name: "\u5F3A\u529B\u63A8\u8FDB\u5668\u672A\u6FC0\u6D3B"
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_Parent: {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_ModifiedSerializedProperties: 2
@@ -28,9 +28,9 @@ Material:
     m_Ints: []
     m_Floats: []
     m_Colors:
-    - _BaseColor: {r: 0.7423906, g: 0.7663982, b: 0.7830189, a: 1}
-    - _Color: {r: 0.7423906, g: 0.7663982, b: 0.7830188, a: 1}
-    - _EmissionColor: {r: 0.22322798, g: 0.2462014, b: 0.26225072, a: 1}
+    - _BaseColor: {r: 1, g: 0.35240215, b: 0.21226418, a: 1}
+    - _Color: {r: 1, g: 0.35240212, b: 0.21226415, a: 1}
+    - _EmissionColor: {r: 1.8778619, g: 0.9863034, b: 0, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &1526979075480203965
 MonoBehaviour:
