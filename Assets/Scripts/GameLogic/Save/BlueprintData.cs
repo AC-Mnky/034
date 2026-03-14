@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 [System.Serializable]
@@ -26,33 +27,87 @@ public class BlueprintData
     public List<NodeData> nodes = new List<NodeData>();
     public List<ConnectionData> connections = new List<ConnectionData>();
 
+    private static string SanitizeFileKey(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return "unknown";
+        var invalid = Path.GetInvalidFileNameChars();
+        var sb = new StringBuilder(key.Length);
+        for (int i = 0; i < key.Length; i++)
+        {
+            char ch = key[i];
+            bool bad = false;
+            for (int j = 0; j < invalid.Length; j++)
+            {
+                if (ch != invalid[j]) continue;
+                bad = true;
+                break;
+            }
+            sb.Append(bad ? '_' : ch);
+        }
+        return sb.ToString();
+    }
+
     private static string GetFilePath(int levelIndex)
     {
         return Path.Combine(Application.persistentDataPath, $"blueprint_{levelIndex}.json");
     }
 
-    public static void SaveBlueprint(int levelIndex, BlueprintData data)
+    private static string GetFilePath(string sceneName)
     {
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(GetFilePath(levelIndex), json);
+        return Path.Combine(Application.persistentDataPath, $"blueprint_{SanitizeFileKey(sceneName)}.json");
     }
 
-    public static BlueprintData LoadBlueprint(int levelIndex)
+    public static void SaveBlueprint(string sceneName, BlueprintData data)
     {
-        string path = GetFilePath(levelIndex);
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(GetFilePath(sceneName), json);
+    }
+
+    public static BlueprintData LoadBlueprint(string sceneName, int legacyLevelIndex = -1)
+    {
+        string path = GetFilePath(sceneName);
         if (File.Exists(path))
         {
             string json = File.ReadAllText(path);
             return JsonUtility.FromJson<BlueprintData>(json);
         }
+
+        if (legacyLevelIndex >= 0)
+        {
+            string legacyPath = GetFilePath(legacyLevelIndex);
+            if (File.Exists(legacyPath))
+            {
+                string json = File.ReadAllText(legacyPath);
+                return JsonUtility.FromJson<BlueprintData>(json);
+            }
+        }
+
         return null;
     }
 
-    public static void DeleteBlueprint(int levelIndex)
+    public static void DeleteBlueprint(string sceneName, int legacyLevelIndex = -1)
     {
-        string path = GetFilePath(levelIndex);
+        string path = GetFilePath(sceneName);
         if (File.Exists(path))
             File.Delete(path);
+
+        if (legacyLevelIndex >= 0)
+        {
+            string legacyPath = GetFilePath(legacyLevelIndex);
+            if (File.Exists(legacyPath))
+                File.Delete(legacyPath);
+        }
+    }
+
+    public static void DeleteAllBlueprints()
+    {
+        string dir = Application.persistentDataPath;
+        if (!Directory.Exists(dir)) return;
+        string[] files = Directory.GetFiles(dir, "blueprint_*.json");
+        for (int i = 0; i < files.Length; i++)
+        {
+            File.Delete(files[i]);
+        }
     }
 
     public BlueprintData DeepCopy()

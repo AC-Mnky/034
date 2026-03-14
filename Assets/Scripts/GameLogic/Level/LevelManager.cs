@@ -36,6 +36,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
     private GameObject _buildAreaBg;
     private Canvas _uiCanvas;
     private bool _startButtonInteractable = true;
+    private string CurrentSceneName => SceneManager.GetActiveScene().name;
 
     private void Awake()
     {
@@ -97,7 +98,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     private void LoadOrInitBlueprint()
     {
-        var loaded = BlueprintData.LoadBlueprint(LevelIndex);
+        var loaded = BlueprintData.LoadBlueprint(CurrentSceneName, LevelIndex);
         if (loaded != null)
         {
             ResolvePrefabsFromInitial(loaded);
@@ -111,7 +112,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     private void ResetToInitialBlueprint()
     {
-        BlueprintData.DeleteBlueprint(LevelIndex);
+        BlueprintData.DeleteBlueprint(CurrentSceneName, LevelIndex);
         _memoryBlueprint = InitialBlueprint.DeepCopy();
         RestoreFromBlueprint(_memoryBlueprint);
         SetupAllNodesForBuild();
@@ -571,7 +572,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
     private void SaveBlueprintToDisk()
     {
         var bp = _memoryBlueprint ?? CaptureBlueprint();
-        BlueprintData.SaveBlueprint(LevelIndex, bp);
+        BlueprintData.SaveBlueprint(CurrentSceneName, bp);
     }
 
     private void OnDrawGizmos()

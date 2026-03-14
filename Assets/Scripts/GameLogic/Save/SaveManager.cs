@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 public class SaveManager
@@ -20,6 +21,7 @@ public class SaveManager
     public void CompleteLevel(string sceneName)
     {
         if (string.IsNullOrEmpty(sceneName)) return;
+        if (!GameConfig.Instance.LevelSceneNames.Contains(sceneName)) return;
         if (!_payload.completedLevelScenes.Contains(sceneName))
         {
             _payload.completedLevelScenes.Add(sceneName);
@@ -36,13 +38,29 @@ public class SaveManager
 
     public int GetUnlockedCount()
     {
-        int count = _payload.completedLevelScenes.Count + GameConfig.Instance.InitialUnlockedLevelNum;
+        int count = GetValidCompletedLevelCount() + GameConfig.Instance.InitialUnlockedLevelNum;
         return Mathf.Min(count, GameConfig.Instance.TotalLevelNum);
     }
 
     public bool IsLevelUnlocked(int levelIndex)
     {
         return levelIndex < GetUnlockedCount();
+    }
+
+    public bool DebugCompleteAllLevelsOnce()
+    {
+        bool changed = false;
+        for (int i = 0; i < GameConfig.Instance.TotalLevelNum; i++)
+        {
+            string sceneName = GameConfig.Instance.GetLevelSceneName(i);
+            if (string.IsNullOrEmpty(sceneName)) continue;
+            if (_payload.completedLevelScenes.Contains(sceneName)) continue;
+            _payload.completedLevelScenes.Add(sceneName);
+            changed = true;
+        }
+
+        if (changed) Save();
+        return changed;
     }
 
     public void ClearAll()
@@ -83,12 +101,48 @@ public class SaveManager
                 _payload.completedLevelScenes.Add(sceneName);
                 migrated = true;
             }
-            if (migrated) Save();
+            bool normalized = NormalizeCompletedLevelScenes();
+            if (migrated || normalized) Save();
         }
         else
         {
             _payload = new SavePayload();
         }
+    }
+
+    private int GetValidCompletedLevelCount()
+    {
+        if (_payload == null || _payload.completedLevelScenes == null) return 0;
+        var valid = new HashSet<string>(GameConfig.Instance.LevelSceneNames);
+        int count = 0;
+        for (int i = 0; i < _payload.completedLevelScenes.Count; i++)
+        {
+            if (valid.Contains(_payload.completedLevelScenes[i])) count++;
+        }
+        return count;
+    }
+
+    private bool NormalizeCompletedLevelScenes()
+    {
+        if (_payload == null || _payload.completedLevelScenes == null) return false;
+        var valid = new HashSet<string>(GameConfig.Instance.LevelSceneNames);
+        var normalized = _payload.completedLevelScenes
+            .Where(s => !string.IsNullOrEmpty(s) && valid.Contains(s))
+            .Distinct()
+            .ToList();
+
+        if (normalized.Count == _payload.completedLevelScenes.Count)
+        {
+            for (int i = 0; i < normalized.Count; i++)
+            {
+                if (normalized[i] != _payload.completedLevelScenes[i]) goto changed;
+            }
+            return false;
+        }
+
+    changed:
+        _payload.completedLevelScenes = normalized;
+        return true;
     }
 
     [System.Serializable]

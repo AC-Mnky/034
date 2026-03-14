@@ -28,16 +28,24 @@ public class LevelSelectManager : MonoBehaviour, IButtonReceiver
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+        if (ctrl && Input.GetKeyDown(KeyCode.T))
+        {
+            SaveManager.Instance.DebugCompleteAllLevelsOnce();
+            RefreshButtons();
+            return;
+        }
+
+        if (!ctrl && Input.GetKeyDown(KeyCode.R))
         {
             SaveManager.Instance.ClearAll();
             RefreshButtons();
         }
-        if (Input.GetKeyDown(KeyCode.R) && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+        if (ctrl && Input.GetKeyDown(KeyCode.R))
         {
             SaveManager.Instance.ClearAll();
-            for (int i = 0; i < GameConfig.Instance.TotalLevelNum; i++)
-                BlueprintData.DeleteBlueprint(i);
+            BlueprintData.DeleteAllBlueprints();
             RefreshButtons();
         }
     }
