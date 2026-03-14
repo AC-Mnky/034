@@ -2,6 +2,12 @@ using UnityEngine;
 
 public class RuntimeCameraController : MonoBehaviour
 {
+    public enum ZoomMode
+    {
+        Free = 0,
+        OnlyZoomOut = 1
+    }
+
     [Header("Smoothing")]
     public float SmoothTime = 0.3f;
 
@@ -17,6 +23,7 @@ public class RuntimeCameraController : MonoBehaviour
 
     private bool _returning;
     private Vector3 _returnPos;
+    private ZoomMode _zoomMode = ZoomMode.Free;
 
     private void Awake()
     {
@@ -36,6 +43,7 @@ public class RuntimeCameraController : MonoBehaviour
     public void ReturnToDefault(Vector3 targetPosition)
     {
         _returning = true;
+        _zoomMode = ZoomMode.Free;
         _returnPos = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
     }
 
@@ -43,15 +51,17 @@ public class RuntimeCameraController : MonoBehaviour
     {
         transform.position = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
         _cam.orthographicSize = DefaultOrthoSize;
+        _zoomMode = ZoomMode.Free;
         _returning = false;
         _velocityPos = Vector3.zero;
         _velocityZoom = 0f;
         enabled = false;
     }
 
-    public void StartFollowing()
+    public void StartFollowing(ZoomMode zoomMode = ZoomMode.Free)
     {
         _returning = false;
+        _zoomMode = zoomMode;
         _velocityPos = Vector3.zero;
         _velocityZoom = 0f;
         enabled = true;
@@ -81,11 +91,23 @@ public class RuntimeCameraController : MonoBehaviour
         Vector2 centerOfMass;
         float targetSize;
         ComputeTargets(out centerOfMass, out targetSize);
+        targetSize = ApplyZoomMode(targetSize);
 
         Vector3 targetPos = new Vector3(centerOfMass.x, centerOfMass.y, transform.position.z);
 
         transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref _velocityPos, SmoothTime);
         _cam.orthographicSize = Mathf.SmoothDamp(_cam.orthographicSize, targetSize, ref _velocityZoom, SmoothTime);
+    }
+
+    private float ApplyZoomMode(float targetSize)
+    {
+        if (_zoomMode == ZoomMode.OnlyZoomOut)
+        {
+            // Orthographic size larger = zoom out (objects appear smaller).
+            return Mathf.Max(targetSize, _cam.orthographicSize);
+        }
+
+        return targetSize;
     }
 
     private void ComputeTargets(out Vector2 centerOfMass, out float targetSize)

@@ -377,7 +377,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         SetBuildUIVisible(false);
 
         var camCtrl = _mainCamera.GetComponent<RuntimeCameraController>();
-        if (camCtrl != null) camCtrl.StartFollowing();
+        if (camCtrl != null) camCtrl.StartFollowing(RuntimeCameraController.ZoomMode.OnlyZoomOut);
     }
 
     public void EnterVictoryMode()
