@@ -46,6 +46,11 @@ public class TriangleRotateUI : MonoBehaviour
     private void Update()
     {
         if (!Application.isPlaying) return;
+        if (LevelManager.IsInputLocked)
+        {
+            Hide();
+            return;
+        }
 
         if (_mainCamera == null) _mainCamera = Camera.main;
         if (ConnectionManager.Instance == null || ConnectionManager.Instance.CurrentState != LevelState.Build)
@@ -109,6 +114,7 @@ public class TriangleRotateUI : MonoBehaviour
 
     public void BeginHandleDrag()
     {
+        if (LevelManager.IsInputLocked) return;
         Show();
         _isHandleDragging = true;
         IsAnyHandleDragging = true;

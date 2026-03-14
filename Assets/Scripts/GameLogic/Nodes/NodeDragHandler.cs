@@ -31,6 +31,7 @@ public class NodeDragHandler : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if (LevelManager.IsInputLocked) return;
         if (_connMgr == null || _connMgr.CurrentState != LevelState.Build) return;
         if (TriangleRotateUI.IsAnyHandleDragging) return;
         if (IsMouseOnRotateHandle()) return;
@@ -44,6 +45,12 @@ public class NodeDragHandler : MonoBehaviour
 
     private void OnMouseDrag()
     {
+        if (LevelManager.IsInputLocked)
+        {
+            _isDragging = false;
+            _previewConnections.Clear();
+            return;
+        }
         if (!_isDragging) return;
 
         Vector3 screenPos = Input.mousePosition;
@@ -60,6 +67,12 @@ public class NodeDragHandler : MonoBehaviour
 
     private void OnMouseUp()
     {
+        if (LevelManager.IsInputLocked)
+        {
+            _isDragging = false;
+            _previewConnections.Clear();
+            return;
+        }
         if (!_isDragging) return;
         _isDragging = false;
         _previewConnections.Clear();

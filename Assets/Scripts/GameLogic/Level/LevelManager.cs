@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,13 +8,17 @@ using UnityEngine.UI;
 public class LevelManager : MonoBehaviour, IButtonReceiver
 {
     public static LevelManager Instance { get; private set; }
+    public static bool IsInputLocked { get; private set; }
 
     [Header("Level Config")]
     public int LevelIndex;
 
     [Header("Scene References")]
     public List<Transform> BuildAreaVertices = new List<Transform>();
+    public Transform IntroCameraAnchor;
     public Transform CameraAnchor;
+    [Tooltip("Optional roots used to compute intro camera bounds. If empty, auto-detect map renderers/colliders in scene.")]
+    public List<Transform> IntroBoundsRoots = new List<Transform>();
 
     [Header("Inventory (offset relative to CameraAnchor)")]
     public Rect InventoryAreaOffset = new Rect(-5f, -8f, 10f, 3f);
@@ -29,14 +34,16 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
     private BlueprintData _memoryBlueprint;
     private Camera _mainCamera;
     private ConnectionManager _connMgr;
+    private LevelAreaVisualController _areaVisualController;
+    private LevelIntroSequenceController _introSequenceController;
+    private LevelPartAppearController _partAppearController;
 
     private GameButton _actionButton;
     private GameButton _exitButton;
-    private GameObject _inventoryBg;
-    private GameObject _buildAreaBg;
     private Canvas _uiCanvas;
     private bool _startButtonInteractable = true;
     private string CurrentSceneName => SceneManager.GetActiveScene().name;
+    private Coroutine _buildIntroRoutine;
 
     private void Awake()
     {
@@ -49,17 +56,27 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
             go.AddComponent<ConnectionManager>();
         }
         _connMgr = ConnectionManager.Instance;
+        _areaVisualController = GetComponent<LevelAreaVisualController>();
+        if (_areaVisualController == null) _areaVisualController = gameObject.AddComponent<LevelAreaVisualController>();
+        _introSequenceController = GetComponent<LevelIntroSequenceController>();
+        if (_introSequenceController == null) _introSequenceController = gameObject.AddComponent<LevelIntroSequenceController>();
+        _partAppearController = GetComponent<LevelPartAppearController>();
+        if (_partAppearController == null) _partAppearController = gameObject.AddComponent<LevelPartAppearController>();
 
         GenerateUI();
+        RefreshAreaVisuals();
         SnapCameraToBuildPosition();
         LoadOrInitBlueprint();
         EnterBuildMode();
+        BeginBuildIntroSequence();
     }
 
     private void Update()
     {
         if (CurrentState == LevelState.Build)
         {
+            if (IsInputLocked) return;
+
             if (Input.GetKeyDown(KeyCode.R))
                 ResetToInitialBlueprint();
 
@@ -67,7 +84,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         }
     }
 
-    private void UpdateStartButtonState()
+    private void UpdateStartButtonState(bool forceRefresh = false)
     {
         var buildPoly = GetBuildAreaPolygon();
         bool allInBuildArea = true;
@@ -86,7 +103,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         }
 
         bool canStart = allInBuildArea && _connMgr.AreAllNodesConnected(previewConns);
-        if (canStart == _startButtonInteractable) return;
+        if (!forceRefresh && canStart == _startButtonInteractable) return;
 
         _startButtonInteractable = canStart;
         if (_actionButton == null) return;
@@ -116,6 +133,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         _memoryBlueprint = InitialBlueprint.DeepCopy();
         RestoreFromBlueprint(_memoryBlueprint);
         SetupAllNodesForBuild();
+        BeginBuildIntroSequence();
     }
 
     private void ResolvePrefabsFromInitial(BlueprintData loaded)
@@ -129,8 +147,6 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     private void GenerateUI()
     {
-        CreateInventoryBackground();
-        CreateBuildAreaBackground();
         CreateCanvas();
 
         _exitButton = CreateUIButton(
@@ -140,6 +156,12 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         _actionButton = CreateUIButton(
             "ActionButton", "Start", ButtonShape.TriangleRight,
             ColorConfig.Instance.StartButtonColor, new Vector2(1f, 0f), new Vector2(-60f, 60f));
+    }
+
+    private void RefreshAreaVisuals()
+    {
+        if (_areaVisualController == null) return;
+        _areaVisualController.BuildVisuals(GetBuildAreaPolygon(), GetInventoryArea());
     }
 
     private void CreateCanvas()
@@ -163,81 +185,10 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         }
     }
 
-    private void CreateInventoryBackground()
-    {
-        _inventoryBg = CreateAreaBackground("InventoryBackground",
-            GetInventoryArea(), ColorConfig.Instance.InventoryBackgroundColor);
-    }
-
-    private void CreateBuildAreaBackground()
-    {
-        var poly = GetBuildAreaPolygon();
-        if (poly.Length < 3) return;
-
-        _buildAreaBg = new GameObject("BuildAreaBackground");
-        _buildAreaBg.transform.position = new Vector3(0f, 0f, 1f);
-
-        var mf = _buildAreaBg.AddComponent<MeshFilter>();
-        var mr = _buildAreaBg.AddComponent<MeshRenderer>();
-
-        mr.material = new Material(Shader.Find("Sprites/Default"));
-        mr.material.color = ColorConfig.Instance.BuildAreaBackgroundColor;
-        mr.sortingOrder = -100;
-
-        mf.mesh = CreatePolygonMesh(poly);
-    }
-
-    private static Mesh CreatePolygonMesh(Vector2[] poly)
-    {
-        var mesh = new Mesh();
-
-        var verts = new Vector3[poly.Length];
-        for (int i = 0; i < poly.Length; i++)
-            verts[i] = new Vector3(poly[i].x, poly[i].y, 0f);
-
-        var tris = new int[(poly.Length - 2) * 3];
-        for (int i = 0; i < poly.Length - 2; i++)
-        {
-            tris[i * 3] = 0;
-            tris[i * 3 + 1] = i + 1;
-            tris[i * 3 + 2] = i + 2;
-        }
-
-        mesh.vertices = verts;
-        mesh.triangles = tris;
-        mesh.RecalculateNormals();
-        return mesh;
-    }
-
-    private GameObject CreateAreaBackground(string name, Rect area, Color color)
-    {
-        var go = new GameObject(name);
-        go.transform.position = new Vector3(
-            area.x + area.width * 0.5f,
-            area.y + area.height * 0.5f,
-            1f);
-
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.color = color;
-        sr.sortingOrder = -100;
-
-        var tex = new Texture2D(1, 1);
-        tex.SetPixel(0, 0, Color.white);
-        tex.Apply();
-        sr.sprite = Sprite.Create(tex,
-            new UnityEngine.Rect(0, 0, 1, 1),
-            new Vector2(0.5f, 0.5f), 1f);
-
-        go.transform.localScale = new Vector3(area.width, area.height, 1f);
-        return go;
-    }
-
     private void SetBuildUIVisible(bool visible)
     {
-        if (_inventoryBg != null)
-            _inventoryBg.SetActive(visible);
-        if (_buildAreaBg != null)
-            _buildAreaBg.SetActive(visible);
+        if (_areaVisualController != null)
+            _areaVisualController.SetVisible(visible);
     }
 
     private GameButton CreateUIButton(string name, string buttonName, ButtonShape shape,
@@ -270,6 +221,9 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     public bool OnButtonDown(string buttonName)
     {
+        if (IsInputLocked && buttonName != "Exit")
+            return true;
+
         switch (buttonName)
         {
             case "Exit":
@@ -308,6 +262,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
     {
         CurrentState = LevelState.Build;
         _connMgr.CurrentState = LevelState.Build;
+        IsInputLocked = false;
 
         if (_memoryBlueprint != null)
         {
@@ -361,6 +316,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     public void EnterRunMode()
     {
+        IsInputLocked = false;
         _memoryBlueprint = CaptureBlueprint();
         SaveBlueprintToDisk();
 
@@ -392,12 +348,75 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         SetActionButton("Next", ButtonShape.TriangleRight, ColorConfig.Instance.NextButtonColor);
     }
 
+    private void BeginBuildIntroSequence()
+    {
+        if (!gameObject.activeInHierarchy) return;
+        if (_buildIntroRoutine != null) StopCoroutine(_buildIntroRoutine);
+        _buildIntroRoutine = StartCoroutine(BuildIntroSequenceRoutine());
+    }
+
+    private IEnumerator BuildIntroSequenceRoutine()
+    {
+        IsInputLocked = true;
+        SetBuildUIVisible(false);
+        SetActionButtonDisabledVisual();
+        if (_partAppearController != null)
+            _partAppearController.HideInventoryParts(_connMgr.AllNodes);
+        var camCtrl = _mainCamera != null ? _mainCamera.GetComponent<RuntimeCameraController>() : null;
+        if (_introSequenceController != null)
+        {
+            yield return StartCoroutine(_introSequenceController.PlayIntro(
+                _mainCamera,
+                camCtrl,
+                IntroCameraAnchor,
+                CameraAnchor,
+                IntroBoundsRoots,
+                _uiCanvas != null ? _uiCanvas.transform : null,
+                _areaVisualController != null ? _areaVisualController.InventoryVisualRoot : null,
+                _areaVisualController != null ? _areaVisualController.BuildAreaVisualRoot : null));
+        }
+
+        SetBuildUIVisible(true);
+        if (_partAppearController != null)
+            yield return StartCoroutine(_partAppearController.PlayInventoryAppearance(_connMgr.AllNodes, CameraConfig.Instance));
+
+        IsInputLocked = false;
+        UpdateStartButtonState(true);
+        _buildIntroRoutine = null;
+    }
+
+    private HashSet<Renderer> HideInventoryPartsForIntro()
+    {
+        var hidden = new HashSet<Renderer>();
+        for (int i = 0; i < _connMgr.AllNodes.Count; i++)
+        {
+            var node = _connMgr.AllNodes[i];
+            if (node == null || !node.gameObject.activeSelf || !node.IsInInventory) continue;
+            var renderers = node.GetComponentsInChildren<Renderer>(true);
+            for (int r = 0; r < renderers.Length; r++)
+            {
+                var renderer = renderers[r];
+                if (renderer == null || !renderer.enabled) continue;
+                renderer.enabled = false;
+                hidden.Add(renderer);
+            }
+        }
+        return hidden;
+    }
+
     private void SetActionButton(string buttonName, ButtonShape shape, Color color)
     {
         if (_actionButton == null) return;
         _actionButton.ButtonName = buttonName;
         _actionButton.Shape = shape;
         _actionButton.ButtonColor = color;
+        _actionButton.ApplyVisual();
+    }
+
+    private void SetActionButtonDisabledVisual()
+    {
+        if (_actionButton == null) return;
+        _actionButton.ButtonColor = ColorConfig.Instance.DisabledButtonColor;
         _actionButton.ApplyVisual();
     }
 
@@ -577,36 +596,18 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     private void OnDrawGizmos()
     {
-        if (BuildAreaVertices == null || BuildAreaVertices.Count < 3) return;
-
-        Gizmos.color = new Color(ColorConfig.Instance.BuildAreaBackgroundColor.r,
-            ColorConfig.Instance.BuildAreaBackgroundColor.g,
-            ColorConfig.Instance.BuildAreaBackgroundColor.b, 0.8f);
-
-        for (int i = 0; i < BuildAreaVertices.Count; i++)
+        LevelAreaVisualController.DrawAreaGizmos(GetBuildAreaPolygon(), GetInventoryArea());
+        var introCtrl = _introSequenceController != null
+            ? _introSequenceController
+            : GetComponent<LevelIntroSequenceController>();
+        if (introCtrl != null)
         {
-            if (BuildAreaVertices[i] == null) continue;
-            int next = (i + 1) % BuildAreaVertices.Count;
-            if (BuildAreaVertices[next] == null) continue;
-
-            Gizmos.DrawLine(BuildAreaVertices[i].position, BuildAreaVertices[next].position);
+            introCtrl.DrawIntroGizmo(
+                IntroCameraAnchor,
+                IntroBoundsRoots,
+                _uiCanvas != null ? _uiCanvas.transform : null,
+                _areaVisualController != null ? _areaVisualController.InventoryVisualRoot : null,
+                _areaVisualController != null ? _areaVisualController.BuildAreaVisualRoot : null);
         }
-
-        Gizmos.color = Color.white;
-        foreach (var v in BuildAreaVertices)
-        {
-            if (v != null)
-                Gizmos.DrawWireSphere(v.position, 0.15f);
-        }
-
-        Gizmos.color = new Color(ColorConfig.Instance.InventoryBackgroundColor.r,
-            ColorConfig.Instance.InventoryBackgroundColor.g,
-            ColorConfig.Instance.InventoryBackgroundColor.b, 0.8f);
-        Rect inv = GetInventoryArea();
-        Vector3 invCenter = new Vector3(
-            inv.x + inv.width * 0.5f,
-            inv.y + inv.height * 0.5f, 0f);
-        Vector3 invSize = new Vector3(inv.width, inv.height, 0f);
-        Gizmos.DrawWireCube(invCenter, invSize);
     }
 }
