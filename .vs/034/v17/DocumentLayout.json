@@ -1,0 +1,41 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{192853C9-97BE-8B26-5F5B-D505330DA423}|Assembly-CSharp.csproj|c:\\users\\13465\\desktop\\034gamejam\\034\\assets\\scripts\\gamelogic\\nodes\\node.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{192853C9-97BE-8B26-5F5B-D505330DA423}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\gamelogic\\nodes\\node.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Node.cs",
+              "DocumentMoniker": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\Assets\\Scripts\\GameLogic\\Nodes\\Node.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\GameLogic\\Nodes\\Node.cs",
+              "ToolTip": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\Assets\\Scripts\\GameLogic\\Nodes\\Node.cs",
+              "RelativeToolTip": "Assets\\Scripts\\GameLogic\\Nodes\\Node.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvxMAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-14T13:42:11.255Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
