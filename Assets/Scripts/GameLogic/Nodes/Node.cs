@@ -20,6 +20,7 @@ public abstract class Node : MonoBehaviour
     public bool IsCharged { get; private set; }
     public bool IsConductive => CanCharge || CanConduct;
     public bool HasElectricity => CanCharge || IsCharged;
+    private bool _defaultIsTrigger;
 
     public string NodeType => GetType().Name;
 
@@ -34,7 +35,11 @@ public abstract class Node : MonoBehaviour
         Rb.mass = Mass;
 
         Col = GetComponent<Collider2D>();
-        if (Col != null) Col.enabled = false;
+        if (Col != null)
+        {
+            _defaultIsTrigger = Col.isTrigger;
+            Col.enabled = false;
+        }
     }
 
     public void EnterRunMode()
@@ -50,12 +55,20 @@ public abstract class Node : MonoBehaviour
 
         if (CanCollide)
         {
-            if (Col != null) Col.enabled = true;
+            if (Col != null)
+            {
+                Col.isTrigger = _defaultIsTrigger;
+                Col.enabled = true;
+            }
         }
         else
         {
-            // Rb.gravityScale = 0f;
-            if (Col != null) Col.enabled = false;
+            if (Col != null)
+            {
+                // Use trigger collider so non-collidable nodes can still reach GoalTrigger.
+                Col.isTrigger = true;
+                Col.enabled = true;
+            }
         }
 
         if (!CanRotate)
@@ -71,7 +84,11 @@ public abstract class Node : MonoBehaviour
         Rb.bodyType = RigidbodyType2D.Kinematic;
         Rb.velocity = Vector2.zero;
         Rb.angularVelocity = 0f;
-        if (Col != null) Col.enabled = true;
+        if (Col != null)
+        {
+            Col.isTrigger = _defaultIsTrigger;
+            Col.enabled = true;
+        }
     }
 
     public virtual void OnRuntimeClick() { }
