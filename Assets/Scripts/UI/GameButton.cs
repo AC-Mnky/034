@@ -11,7 +11,7 @@ public enum ButtonShape
 }
 
 [RequireComponent(typeof(Image))]
-public class GameButton : MonoBehaviour, IPointerClickHandler
+public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public string ButtonName;
     public MonoBehaviour ButtonReceiver;
@@ -53,6 +53,18 @@ public class GameButton : MonoBehaviour, IPointerClickHandler
     {
         if (_receiver == null) return;
         _receiver.OnButtonDown(ButtonName);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (_receiver is IButtonHoverReceiver hoverReceiver)
+            hoverReceiver.OnButtonHoverEnter(ButtonName);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (_receiver is IButtonHoverReceiver hoverReceiver)
+            hoverReceiver.OnButtonHoverExit(ButtonName);
     }
 
     private static Sprite GenerateShapeSprite(ButtonShape shape, Vector2 size)
@@ -158,4 +170,10 @@ public class GameButton : MonoBehaviour, IPointerClickHandler
     {
         return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
     }
+}
+
+public interface IButtonHoverReceiver
+{
+    void OnButtonHoverEnter(string buttonName);
+    void OnButtonHoverExit(string buttonName);
 }

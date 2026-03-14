@@ -1,9 +1,12 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class LevelAreaVisualController : MonoBehaviour
 {
     private GameObject _inventoryBg;
     private GameObject _buildAreaBg;
+    private readonly List<AreaFadeState> _activeFadeStates = new List<AreaFadeState>();
 
     public Transform InventoryVisualRoot => _inventoryBg != null ? _inventoryBg.transform : null;
     public Transform BuildAreaVisualRoot => _buildAreaBg != null ? _buildAreaBg.transform : null;
@@ -19,6 +22,37 @@ public class LevelAreaVisualController : MonoBehaviour
     {
         if (_inventoryBg != null) _inventoryBg.SetActive(visible);
         if (_buildAreaBg != null) _buildAreaBg.SetActive(visible);
+    }
+
+    public IEnumerator FadeIn(float duration)
+    {
+        CancelFadeAndRestoreColors();
+        _activeFadeStates.Clear();
+        CollectFadeStatesFromRoot(_inventoryBg, _activeFadeStates);
+        CollectFadeStatesFromRoot(_buildAreaBg, _activeFadeStates);
+        if (_activeFadeStates.Count == 0) yield break;
+
+        duration = Mathf.Max(0.01f, duration);
+        SetAlpha(_activeFadeStates, 0f);
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float p = Mathf.Clamp01(t / duration);
+            float eased = p * p * (3f - 2f * p);
+            SetAlpha(_activeFadeStates, eased);
+            yield return null;
+        }
+
+        RestoreFadeStates(_activeFadeStates);
+        _activeFadeStates.Clear();
+    }
+
+    public void CancelFadeAndRestoreColors()
+    {
+        RestoreFadeStates(_activeFadeStates);
+        _activeFadeStates.Clear();
     }
 
     public static void DrawAreaGizmos(Vector2[] buildPoly, Rect inventoryArea)
@@ -143,5 +177,126 @@ public class LevelAreaVisualController : MonoBehaviour
         lr.numCapVertices = 2;
         lr.numCornerVertices = 2;
         for (int i = 0; i < points.Length; i++) lr.SetPosition(i, points[i]);
+    }
+
+    private class AreaFadeState
+    {
+        public readonly SpriteRenderer SpriteRenderer;
+        public readonly MeshRenderer MeshRenderer;
+        public readonly LineRenderer LineRenderer;
+        public readonly Color ColorA;
+        public readonly Color ColorB;
+
+        public AreaFadeState(SpriteRenderer spriteRenderer, Color color)
+        {
+            SpriteRenderer = spriteRenderer;
+            MeshRenderer = null;
+            LineRenderer = null;
+            ColorA = color;
+            ColorB = color;
+        }
+
+        public AreaFadeState(MeshRenderer meshRenderer, Color color)
+        {
+            SpriteRenderer = null;
+            MeshRenderer = meshRenderer;
+            LineRenderer = null;
+            ColorA = color;
+            ColorB = color;
+        }
+
+        public AreaFadeState(LineRenderer lineRenderer, Color startColor, Color endColor)
+        {
+            SpriteRenderer = null;
+            MeshRenderer = null;
+            LineRenderer = lineRenderer;
+            ColorA = startColor;
+            ColorB = endColor;
+        }
+    }
+
+    private static void CollectFadeStatesFromRoot(GameObject root, List<AreaFadeState> states)
+    {
+        if (root == null) return;
+        root.SetActive(true);
+
+        var sprites = root.GetComponentsInChildren<SpriteRenderer>(true);
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            var sr = sprites[i];
+            if (sr == null) continue;
+            states.Add(new AreaFadeState(sr, sr.color));
+        }
+
+        var meshes = root.GetComponentsInChildren<MeshRenderer>(true);
+        for (int i = 0; i < meshes.Length; i++)
+        {
+            var mr = meshes[i];
+            if (mr == null || mr.material == null) continue;
+            states.Add(new AreaFadeState(mr, mr.material.color));
+        }
+
+        var lines = root.GetComponentsInChildren<LineRenderer>(true);
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var lr = lines[i];
+            if (lr == null) continue;
+            states.Add(new AreaFadeState(lr, lr.startColor, lr.endColor));
+        }
+    }
+
+    private static void SetAlpha(List<AreaFadeState> states, float normalized)
+    {
+        float p = Mathf.Clamp01(normalized);
+        for (int i = 0; i < states.Count; i++)
+        {
+            var s = states[i];
+            if (s.SpriteRenderer != null)
+            {
+                var c = s.ColorA;
+                s.SpriteRenderer.color = new Color(c.r, c.g, c.b, c.a * p);
+                continue;
+            }
+
+            if (s.MeshRenderer != null && s.MeshRenderer.material != null)
+            {
+                var c = s.ColorA;
+                s.MeshRenderer.material.color = new Color(c.r, c.g, c.b, c.a * p);
+                continue;
+            }
+
+            if (s.LineRenderer != null)
+            {
+                var c0 = s.ColorA;
+                var c1 = s.ColorB;
+                s.LineRenderer.startColor = new Color(c0.r, c0.g, c0.b, c0.a * p);
+                s.LineRenderer.endColor = new Color(c1.r, c1.g, c1.b, c1.a * p);
+            }
+        }
+    }
+
+    private static void RestoreFadeStates(List<AreaFadeState> states)
+    {
+        for (int i = 0; i < states.Count; i++)
+        {
+            var s = states[i];
+            if (s.SpriteRenderer != null)
+            {
+                s.SpriteRenderer.color = s.ColorA;
+                continue;
+            }
+
+            if (s.MeshRenderer != null && s.MeshRenderer.material != null)
+            {
+                s.MeshRenderer.material.color = s.ColorA;
+                continue;
+            }
+
+            if (s.LineRenderer != null)
+            {
+                s.LineRenderer.startColor = s.ColorA;
+                s.LineRenderer.endColor = s.ColorB;
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 public class LevelPartAppearController : MonoBehaviour
 {
     private HashSet<Renderer> _hiddenInventoryRenderers = new HashSet<Renderer>();
+    private readonly List<PartMaterialState> _activeHiddenFadeMaterials = new List<PartMaterialState>();
 
     private class PartMaterialState
     {
@@ -23,7 +24,101 @@ public class LevelPartAppearController : MonoBehaviour
 
     public void HideInventoryParts(List<Node> allNodes)
     {
-        _hiddenInventoryRenderers = CollectAndHideInventoryParts(allNodes);
+        RestoreActiveHiddenFadeMaterials();
+        var hidden = CollectAndHideInventoryParts(allNodes);
+        foreach (var renderer in hidden)
+            _hiddenInventoryRenderers.Add(renderer);
+    }
+
+    public void ShowHiddenInventoryParts()
+    {
+        RestoreActiveHiddenFadeMaterials();
+        foreach (var renderer in _hiddenInventoryRenderers)
+        {
+            if (renderer != null)
+                renderer.enabled = true;
+        }
+        _hiddenInventoryRenderers.Clear();
+    }
+
+    public void ForceShowInventoryParts(List<Node> allNodes)
+    {
+        RestoreActiveHiddenFadeMaterials();
+        if (allNodes == null) return;
+        for (int i = 0; i < allNodes.Count; i++)
+        {
+            var node = allNodes[i];
+            if (node == null || !node.gameObject.activeSelf || !node.IsInInventory) continue;
+            var renderers = node.GetComponentsInChildren<Renderer>(true);
+            for (int r = 0; r < renderers.Length; r++)
+            {
+                var renderer = renderers[r];
+                if (renderer != null) renderer.enabled = true;
+            }
+        }
+        _hiddenInventoryRenderers.Clear();
+    }
+
+    public IEnumerator FadeInHiddenInventoryParts(float durationSeconds)
+    {
+        if (_hiddenInventoryRenderers == null || _hiddenInventoryRenderers.Count == 0) yield break;
+        durationSeconds = Mathf.Max(0.01f, durationSeconds);
+
+        _activeHiddenFadeMaterials.Clear();
+        foreach (var renderer in _hiddenInventoryRenderers)
+        {
+            if (renderer == null) continue;
+            renderer.enabled = true;
+            var mats = renderer.materials;
+            for (int i = 0; i < mats.Length; i++)
+            {
+                var mat = mats[i];
+                if (mat == null || !mat.HasProperty("_Color")) continue;
+                var original = mat.color;
+                mat.color = new Color(original.r, original.g, original.b, 0f);
+                _activeHiddenFadeMaterials.Add(new PartMaterialState
+                {
+                    Material = mat,
+                    OriginalColor = original,
+                    StartAlpha = 0f
+                });
+            }
+        }
+
+        float t = 0f;
+        while (t < durationSeconds)
+        {
+            t += Time.deltaTime;
+            float p = Mathf.Clamp01(t / durationSeconds);
+            float eased = p * p * (3f - 2f * p);
+            for (int i = 0; i < _activeHiddenFadeMaterials.Count; i++)
+            {
+                var ms = _activeHiddenFadeMaterials[i];
+                if (ms.Material == null) continue;
+                float alpha = Mathf.Lerp(0f, ms.OriginalColor.a, eased);
+                ms.Material.color = new Color(ms.OriginalColor.r, ms.OriginalColor.g, ms.OriginalColor.b, alpha);
+            }
+            yield return null;
+        }
+
+        RestoreActiveHiddenFadeMaterials();
+        _hiddenInventoryRenderers.Clear();
+    }
+
+    public void CancelHiddenFadeAndRestore()
+    {
+        RestoreActiveHiddenFadeMaterials();
+    }
+
+    private void RestoreActiveHiddenFadeMaterials()
+    {
+        for (int i = 0; i < _activeHiddenFadeMaterials.Count; i++)
+        {
+            var ms = _activeHiddenFadeMaterials[i];
+            if (ms.Material != null)
+                ms.Material.color = ms.OriginalColor;
+        }
+        _activeHiddenFadeMaterials.Clear();
     }
 
     public IEnumerator PlayInventoryAppearance(List<Node> allNodes, CameraConfig cfg)

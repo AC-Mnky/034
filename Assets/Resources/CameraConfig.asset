@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: CameraConfig
   m_EditorClassIdentifier: 
   IntroHoldSeconds: 1
-  IntroMoveSeconds: 3
+  IntroMoveSeconds: 2
   IntroBoundsScaleMultiplier: 1.2
+  HoverToIntroSeconds: 1
+  HoverReturnSeconds: 0.5
   PartAppearSeconds: 0.5
   PartAppearStartScale: 0
   PartAppearStartAlpha: 0

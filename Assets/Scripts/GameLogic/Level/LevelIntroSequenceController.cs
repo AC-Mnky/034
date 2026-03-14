@@ -4,6 +4,39 @@ using UnityEngine;
 
 public class LevelIntroSequenceController : MonoBehaviour
 {
+    public bool TryGetIntroCameraTargets(
+        Camera mainCamera,
+        RuntimeCameraController runtimeCameraController,
+        Transform introCameraAnchor,
+        Transform cameraAnchor,
+        List<Transform> introBoundsRoots,
+        Transform uiRoot,
+        Transform inventoryVisualRoot,
+        Transform buildVisualRoot,
+        out Vector3 introPos,
+        out Vector3 buildPos,
+        out float introOrthoSize,
+        out float buildOrthoSize)
+    {
+        introPos = Vector3.zero;
+        buildPos = Vector3.zero;
+        introOrthoSize = 0f;
+        buildOrthoSize = 0f;
+        if (mainCamera == null) return false;
+
+        buildPos = cameraAnchor != null
+            ? new Vector3(cameraAnchor.position.x, cameraAnchor.position.y, mainCamera.transform.position.z)
+            : mainCamera.transform.position;
+        introPos = ResolveIntroCameraPosition(mainCamera, introCameraAnchor, buildPos, introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot);
+
+        buildOrthoSize = runtimeCameraController != null
+            ? runtimeCameraController.DefaultOrthoSize
+            : mainCamera.orthographicSize;
+        introOrthoSize = ResolveIntroCameraOrthoSize(
+            mainCamera, introCameraAnchor, introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot, buildOrthoSize);
+        return true;
+    }
+
     public IEnumerator PlayIntro(
         Camera mainCamera,
         RuntimeCameraController runtimeCameraController,
@@ -15,11 +48,22 @@ public class LevelIntroSequenceController : MonoBehaviour
         Transform buildVisualRoot)
     {
         if (mainCamera == null) yield break;
-
-        Vector3 buildPos = cameraAnchor != null
-            ? new Vector3(cameraAnchor.position.x, cameraAnchor.position.y, mainCamera.transform.position.z)
-            : mainCamera.transform.position;
-        Vector3 introPos = ResolveIntroCameraPosition(mainCamera, introCameraAnchor, buildPos, introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot);
+        if (!TryGetIntroCameraTargets(
+            mainCamera,
+            runtimeCameraController,
+            introCameraAnchor,
+            cameraAnchor,
+            introBoundsRoots,
+            uiRoot,
+            inventoryVisualRoot,
+            buildVisualRoot,
+            out var introPos,
+            out var buildPos,
+            out var introOrthoSize,
+            out var buildOrthoSize))
+        {
+            yield break;
+        }
 
         var cfg = CameraConfig.Instance;
         float holdSeconds = cfg != null ? cfg.IntroHoldSeconds : 1f;
@@ -27,12 +71,6 @@ public class LevelIntroSequenceController : MonoBehaviour
 
         var introCtrl = mainCamera.GetComponent<IntroCameraController>();
         if (introCtrl == null) introCtrl = mainCamera.gameObject.AddComponent<IntroCameraController>();
-
-        float buildOrthoSize = runtimeCameraController != null
-            ? runtimeCameraController.DefaultOrthoSize
-            : mainCamera.orthographicSize;
-        float introOrthoSize = ResolveIntroCameraOrthoSize(
-            mainCamera, introCameraAnchor, introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot, buildOrthoSize);
 
         bool cameraDone = false;
         introCtrl.PlayIntroSequence(

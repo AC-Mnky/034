@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class LevelManager : MonoBehaviour, IButtonReceiver
+public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 {
     public static LevelManager Instance { get; private set; }
     public static bool IsInputLocked { get; private set; }
@@ -40,10 +40,14 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     private GameButton _actionButton;
     private GameButton _exitButton;
+    private GameButton _previewButton;
     private Canvas _uiCanvas;
     private bool _startButtonInteractable = true;
     private string CurrentSceneName => SceneManager.GetActiveScene().name;
     private Coroutine _buildIntroRoutine;
+    private Coroutine _hoverRecoverRoutine;
+    private bool _buildIntroFinished;
+    private bool _isHoverPreviewActive;
 
     private void Awake()
     {
@@ -156,6 +160,11 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         _actionButton = CreateUIButton(
             "ActionButton", "Start", ButtonShape.TriangleRight,
             ColorConfig.Instance.StartButtonColor, new Vector2(1f, 0f), new Vector2(-60f, 60f));
+
+        _previewButton = CreateUIButton(
+            "PreviewButton", "Preview", ButtonShape.Square,
+            Color.white, new Vector2(1f, 1f), new Vector2(-60f, -60f));
+        _previewButton.gameObject.SetActive(false);
     }
 
     private void RefreshAreaVisuals()
@@ -254,8 +263,25 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
                         SceneManager.LoadScene(GameConfig.Instance.GetLevelSceneName(next));
                 }
                 return true;
+
+            case "Preview":
+                return true;
         }
         return false;
+    }
+
+    public void OnButtonHoverEnter(string buttonName)
+    {
+        if (buttonName != "Preview")
+            return;
+        StartHoverPreview();
+    }
+
+    public void OnButtonHoverExit(string buttonName)
+    {
+        if (buttonName != "Preview")
+            return;
+        StopHoverPreview();
     }
 
     public void EnterBuildMode()
@@ -263,6 +289,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         CurrentState = LevelState.Build;
         _connMgr.CurrentState = LevelState.Build;
         IsInputLocked = false;
+        _isHoverPreviewActive = false;
 
         if (_memoryBlueprint != null)
         {
@@ -282,6 +309,8 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         {
             camCtrl.enabled = false;
         }
+
+        UpdatePreviewButtonVisibility();
     }
 
     private void SnapCameraToBuildPosition()
@@ -316,6 +345,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
     public void EnterRunMode()
     {
+        StopHoverPreviewImmediate();
         IsInputLocked = false;
         _memoryBlueprint = CaptureBlueprint();
         SaveBlueprintToDisk();
@@ -331,6 +361,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
 
         SetActionButton("Stop", ButtonShape.Square, ColorConfig.Instance.StopButtonColor);
         SetBuildUIVisible(false);
+        UpdatePreviewButtonVisibility();
 
         var camCtrl = _mainCamera.GetComponent<RuntimeCameraController>();
         if (camCtrl != null) camCtrl.StartFollowing(RuntimeCameraController.ZoomMode.OnlyZoomOut);
@@ -340,17 +371,22 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
     {
         if (CurrentState == LevelState.Victory) return;
 
+        StopHoverPreviewImmediate();
         CurrentState = LevelState.Victory;
         _connMgr.CurrentState = LevelState.Victory;
 
         SaveManager.Instance.CompleteLevel(SceneManager.GetActiveScene().name);
 
         SetActionButton("Next", ButtonShape.TriangleRight, ColorConfig.Instance.NextButtonColor);
+        UpdatePreviewButtonVisibility();
     }
 
     private void BeginBuildIntroSequence()
     {
         if (!gameObject.activeInHierarchy) return;
+        StopHoverPreviewImmediate();
+        _buildIntroFinished = false;
+        UpdatePreviewButtonVisibility();
         if (_buildIntroRoutine != null) StopCoroutine(_buildIntroRoutine);
         _buildIntroRoutine = StartCoroutine(BuildIntroSequenceRoutine());
     }
@@ -376,32 +412,23 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
                 _areaVisualController != null ? _areaVisualController.BuildAreaVisualRoot : null));
         }
 
-        SetBuildUIVisible(true);
+        float appearSeconds = CameraConfig.Instance != null ? CameraConfig.Instance.PartAppearSeconds : 0.5f;
+        Coroutine areaFadeRoutine = null;
+        Coroutine partFadeRoutine = null;
+        if (_areaVisualController != null)
+            areaFadeRoutine = StartCoroutine(_areaVisualController.FadeIn(appearSeconds));
         if (_partAppearController != null)
-            yield return StartCoroutine(_partAppearController.PlayInventoryAppearance(_connMgr.AllNodes, CameraConfig.Instance));
+            partFadeRoutine = StartCoroutine(_partAppearController.PlayInventoryAppearance(_connMgr.AllNodes, CameraConfig.Instance));
+        if (areaFadeRoutine != null) yield return areaFadeRoutine;
+        if (partFadeRoutine != null) yield return partFadeRoutine;
+        if (_partAppearController != null)
+            _partAppearController.ForceShowInventoryParts(_connMgr.AllNodes);
 
+        _buildIntroFinished = true;
         IsInputLocked = false;
         UpdateStartButtonState(true);
         _buildIntroRoutine = null;
-    }
-
-    private HashSet<Renderer> HideInventoryPartsForIntro()
-    {
-        var hidden = new HashSet<Renderer>();
-        for (int i = 0; i < _connMgr.AllNodes.Count; i++)
-        {
-            var node = _connMgr.AllNodes[i];
-            if (node == null || !node.gameObject.activeSelf || !node.IsInInventory) continue;
-            var renderers = node.GetComponentsInChildren<Renderer>(true);
-            for (int r = 0; r < renderers.Length; r++)
-            {
-                var renderer = renderers[r];
-                if (renderer == null || !renderer.enabled) continue;
-                renderer.enabled = false;
-                hidden.Add(renderer);
-            }
-        }
-        return hidden;
+        UpdatePreviewButtonVisibility();
     }
 
     private void SetActionButton(string buttonName, ButtonShape shape, Color color)
@@ -418,6 +445,176 @@ public class LevelManager : MonoBehaviour, IButtonReceiver
         if (_actionButton == null) return;
         _actionButton.ButtonColor = ColorConfig.Instance.DisabledButtonColor;
         _actionButton.ApplyVisual();
+    }
+
+    private void StartHoverPreview()
+    {
+        if (!CanPreviewHover()) return;
+        CancelHoverRecoverRoutine();
+
+        if (_mainCamera == null || _introSequenceController == null) return;
+        var runtimeCtrl = _mainCamera.GetComponent<RuntimeCameraController>();
+        if (!_introSequenceController.TryGetIntroCameraTargets(
+            _mainCamera,
+            runtimeCtrl,
+            IntroCameraAnchor,
+            CameraAnchor,
+            IntroBoundsRoots,
+            _uiCanvas != null ? _uiCanvas.transform : null,
+            _areaVisualController != null ? _areaVisualController.InventoryVisualRoot : null,
+            _areaVisualController != null ? _areaVisualController.BuildAreaVisualRoot : null,
+            out var introPos,
+            out _,
+            out var introOrthoSize,
+            out _))
+        {
+            return;
+        }
+
+        if (runtimeCtrl != null)
+            runtimeCtrl.enabled = false;
+
+        _isHoverPreviewActive = true;
+        IsInputLocked = true;
+        if (_areaVisualController != null)
+            _areaVisualController.CancelFadeAndRestoreColors();
+        SetBuildUIVisible(false);
+        SetActionButtonDisabledVisual();
+        if (_partAppearController != null)
+        {
+            _partAppearController.CancelHiddenFadeAndRestore();
+            _partAppearController.HideInventoryParts(_connMgr.AllNodes);
+        }
+
+        float hoverToIntroSeconds = CameraConfig.Instance != null ? CameraConfig.Instance.HoverToIntroSeconds : 0.35f;
+        GetOrCreateIntroCameraController().TransitionTo(introPos, introOrthoSize, hoverToIntroSeconds);
+    }
+
+    private void StopHoverPreview()
+    {
+        if (!_isHoverPreviewActive) return;
+        _isHoverPreviewActive = false;
+
+        CancelHoverRecoverRoutine();
+        if (_mainCamera == null || _introSequenceController == null) return;
+        var runtimeCtrl = _mainCamera.GetComponent<RuntimeCameraController>();
+        if (!_introSequenceController.TryGetIntroCameraTargets(
+            _mainCamera,
+            runtimeCtrl,
+            IntroCameraAnchor,
+            CameraAnchor,
+            IntroBoundsRoots,
+            _uiCanvas != null ? _uiCanvas.transform : null,
+            _areaVisualController != null ? _areaVisualController.InventoryVisualRoot : null,
+            _areaVisualController != null ? _areaVisualController.BuildAreaVisualRoot : null,
+            out _,
+            out var buildPos,
+            out _,
+            out var buildOrthoSize))
+        {
+            StartHoverRecoverRoutine();
+            return;
+        }
+
+        float hoverReturnSeconds = CameraConfig.Instance != null ? CameraConfig.Instance.HoverReturnSeconds : 0.2f;
+        var introCtrl = GetOrCreateIntroCameraController();
+        introCtrl.TransitionTo(buildPos, buildOrthoSize, hoverReturnSeconds, () =>
+        {
+            if (_isHoverPreviewActive) return;
+            StartHoverRecoverRoutine();
+        });
+    }
+
+    private void StopHoverPreviewImmediate()
+    {
+        CancelHoverRecoverRoutine();
+
+        _isHoverPreviewActive = false;
+        var introCtrl = _mainCamera != null ? _mainCamera.GetComponent<IntroCameraController>() : null;
+        if (introCtrl != null)
+            introCtrl.StopCurrentTransition(false);
+        if (_areaVisualController != null)
+            _areaVisualController.CancelFadeAndRestoreColors();
+        if (_partAppearController != null)
+            _partAppearController.CancelHiddenFadeAndRestore();
+        if (_partAppearController != null)
+            _partAppearController.ShowHiddenInventoryParts();
+        if (_partAppearController != null)
+            _partAppearController.ForceShowInventoryParts(_connMgr.AllNodes);
+        if (_areaVisualController != null)
+            _areaVisualController.SetVisible(CurrentState == LevelState.Build && _buildIntroFinished);
+    }
+
+    private bool CanPreviewHover()
+    {
+        return CurrentState == LevelState.Build
+               && _buildIntroRoutine == null
+               && _buildIntroFinished
+               && !_isHoverPreviewActive;
+    }
+
+    private IntroCameraController GetOrCreateIntroCameraController()
+    {
+        var ctrl = _mainCamera.GetComponent<IntroCameraController>();
+        if (ctrl == null) ctrl = _mainCamera.gameObject.AddComponent<IntroCameraController>();
+        return ctrl;
+    }
+
+    private IEnumerator HoverRecoverRoutine()
+    {
+        if (CurrentState != LevelState.Build || _buildIntroRoutine != null || !_buildIntroFinished)
+        {
+            _hoverRecoverRoutine = null;
+            yield break;
+        }
+
+        float appearSeconds = CameraConfig.Instance != null ? CameraConfig.Instance.PartAppearSeconds : 0.5f;
+        Coroutine areaFadeRoutine = null;
+        Coroutine partFadeRoutine = null;
+        if (_areaVisualController != null)
+            areaFadeRoutine = StartCoroutine(_areaVisualController.FadeIn(appearSeconds));
+        if (_partAppearController != null)
+            partFadeRoutine = StartCoroutine(_partAppearController.FadeInHiddenInventoryParts(appearSeconds));
+        if (areaFadeRoutine != null) yield return areaFadeRoutine;
+        if (partFadeRoutine != null) yield return partFadeRoutine;
+
+        if (CurrentState == LevelState.Build && _buildIntroRoutine == null && _buildIntroFinished)
+        {
+            if (_partAppearController != null)
+                _partAppearController.ForceShowInventoryParts(_connMgr.AllNodes);
+            IsInputLocked = false;
+            UpdateStartButtonState(true);
+        }
+
+        _hoverRecoverRoutine = null;
+    }
+
+    private void StartHoverRecoverRoutine()
+    {
+        if (_hoverRecoverRoutine != null)
+            StopCoroutine(_hoverRecoverRoutine);
+        _hoverRecoverRoutine = StartCoroutine(HoverRecoverRoutine());
+    }
+
+    private void CancelHoverRecoverRoutine()
+    {
+        if (_hoverRecoverRoutine != null)
+        {
+            StopCoroutine(_hoverRecoverRoutine);
+            _hoverRecoverRoutine = null;
+        }
+        if (_areaVisualController != null)
+            _areaVisualController.CancelFadeAndRestoreColors();
+        if (_partAppearController != null)
+            _partAppearController.CancelHiddenFadeAndRestore();
+    }
+
+    private void UpdatePreviewButtonVisibility()
+    {
+        if (_previewButton == null) return;
+        bool visible = CurrentState == LevelState.Build && _buildIntroFinished && _buildIntroRoutine == null;
+        if (_previewButton.gameObject.activeSelf != visible)
+            _previewButton.gameObject.SetActive(visible);
     }
 
     public Vector2[] GetBuildAreaPolygon()
