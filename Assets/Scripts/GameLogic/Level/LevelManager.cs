@@ -89,7 +89,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     private void UpdateStartButtonState(bool forceRefresh = false)
     {
         var buildPoly = GetBuildAreaPolygon();
-        bool allInBuildArea = true;
+        bool allPlacedInBuildArea = true;
         List<(Node, Node)> previewConns = null;
 
         foreach (var node in _connMgr.AllNodes)
@@ -100,11 +100,12 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
             if (drag != null && drag.IsDragging)
                 previewConns = drag.PreviewConnections;
 
-            if (node.IsInInventory || !PointInPolygon(node.transform.position, buildPoly))
-                allInBuildArea = false;
+            if (node.IsInInventory) continue;
+            if (!PointInPolygon(node.transform.position, buildPoly))
+                allPlacedInBuildArea = false;
         }
 
-        bool canStart = allInBuildArea && _connMgr.AreAllNodesConnected(previewConns);
+        bool canStart = allPlacedInBuildArea && _connMgr.AreAllNodesConnected(previewConns);
         if (!forceRefresh && canStart == _startButtonInteractable) return;
 
         _startButtonInteractable = canStart;
