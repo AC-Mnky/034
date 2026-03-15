@@ -123,6 +123,7 @@ MonoBehaviour:
   CanCharge: 0
   CanConduct: 0
   IsInInventory: 1
+  SourcePrefab: {fileID: 0}
 --- !u!114 &6775539590001453043
 MonoBehaviour:
   m_ObjectHideFlags: 0

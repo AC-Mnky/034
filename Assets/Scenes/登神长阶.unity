@@ -1520,28 +1520,24 @@ MonoBehaviour:
     nodes:
     - prefab: {fileID: 5713757247159889912, guid: 169b1f13397738341bae42cd9ba9658a,
         type: 3}
-      nodeType: 
       isInInventory: 1
       posX: 0
       posY: 0
       rotZ: 0
     - prefab: {fileID: 4794396346771180178, guid: 70ca908905c0f6d41884863569830435,
         type: 3}
-      nodeType: 
       isInInventory: 1
       posX: 0
       posY: 0
       rotZ: 0
     - prefab: {fileID: 4794396346771180178, guid: 70ca908905c0f6d41884863569830435,
         type: 3}
-      nodeType: 
       isInInventory: 1
       posX: 0
       posY: 0
       rotZ: 0
     - prefab: {fileID: 4794396346771180178, guid: 70ca908905c0f6d41884863569830435,
         type: 3}
-      nodeType: 
       isInInventory: 1
       posX: 0
       posY: 0
@@ -1704,12 +1700,12 @@ PrefabInstance:
     - target: {fileID: 1230625351853848157, guid: aa1bcc806631f6045b16763a0b21335d,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 136
+      value: 135.91
       objectReference: {fileID: 0}
     - target: {fileID: 1230625351853848157, guid: aa1bcc806631f6045b16763a0b21335d,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 50.68
+      value: 50.62
       objectReference: {fileID: 0}
     - target: {fileID: 1230625351853848157, guid: aa1bcc806631f6045b16763a0b21335d,
         type: 3}
@@ -1759,12 +1755,12 @@ PrefabInstance:
     - target: {fileID: 2492307787139140356, guid: aa1bcc806631f6045b16763a0b21335d,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -8.8899975
+      value: -8.889996
       objectReference: {fileID: 0}
     - target: {fileID: 2492307787139140356, guid: aa1bcc806631f6045b16763a0b21335d,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.46500385
+      value: -0.46500087
       objectReference: {fileID: 0}
     - target: {fileID: 2492307787139140356, guid: aa1bcc806631f6045b16763a0b21335d,
         type: 3}
@@ -2867,12 +2863,17 @@ PrefabInstance:
     - target: {fileID: 2492307787139140356, guid: aa1bcc806631f6045b16763a0b21335d,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 10
+      value: 9.960007
       objectReference: {fileID: 0}
     - target: {fileID: 2492307787139140356, guid: aa1bcc806631f6045b16763a0b21335d,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 0.020004272
+      objectReference: {fileID: 0}
+    - target: {fileID: 4719445518047243988, guid: aa1bcc806631f6045b16763a0b21335d,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.96
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
