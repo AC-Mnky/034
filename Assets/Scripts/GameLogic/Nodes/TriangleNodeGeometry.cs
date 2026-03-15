@@ -11,8 +11,8 @@ using UnityEditor;
 public class TriangleNodeGeometry : MonoBehaviour
 {
     [Header("Isosceles Triangle Face (XY plane)")]
-    [Min(0.01f)] public float Width = 0.8f;
-    [Min(0.01f)] public float Height = 1.2f;
+    [Min(0.01f)] public float Width;
+    [Min(0.01f)] public float Height;
 
     [Header("Prism Half-Depth (extends from -Depth to +Depth)")]
     [Min(0.01f)] public float Depth = 0.6f;

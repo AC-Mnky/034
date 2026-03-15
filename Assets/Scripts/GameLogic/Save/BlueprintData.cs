@@ -7,7 +7,6 @@ using UnityEngine;
 public class NodeData
 {
     public GameObject prefab;
-    public string nodeType;
     public bool isInInventory = true;
     public float posX;
     public float posY;
@@ -96,7 +95,6 @@ public class BlueprintData
             copy.nodes.Add(new NodeData
             {
                 prefab = nd.prefab,
-                nodeType = nd.nodeType,
                 isInInventory = nd.isInInventory,
                 posX = nd.posX,
                 posY = nd.posY,

@@ -120,7 +120,6 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         var loaded = BlueprintData.LoadBlueprint(CurrentSceneName);
         if (loaded != null)
         {
-            ResolvePrefabsFromInitial(loaded);
             _memoryBlueprint = loaded;
         }
         else
@@ -136,15 +135,6 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         RestoreFromBlueprint(_memoryBlueprint);
         SetupAllNodesForBuild();
         BeginBuildIntroSequence();
-    }
-
-    private void ResolvePrefabsFromInitial(BlueprintData loaded)
-    {
-        foreach (var nd in loaded.nodes)
-        {
-            if (nd.prefab != null) continue;
-            nd.prefab = FindPrefabByType(nd.nodeType);
-        }
     }
 
     private void GenerateUI()
@@ -685,11 +675,14 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
         foreach (var node in _connMgr.AllNodes)
         {
+            GameObject sourcePrefab = node.SourcePrefab != null ? node.SourcePrefab : FindPrefabByType(node.NodeType);
+            if (sourcePrefab == null)
+                Debug.LogError($"Failed to resolve source prefab for node '{node.name}' ({node.NodeType}) in scene '{CurrentSceneName}'.");
+
             nodeIndexMap[node] = idx++;
             data.nodes.Add(new NodeData
             {
-                prefab = FindPrefabByType(node.NodeType),
-                nodeType = node.NodeType,
+                prefab = sourcePrefab,
                 isInInventory = node.IsInInventory,
                 posX = node.IsInInventory ? 0f : node.transform.position.x,
                 posY = node.IsInInventory ? 0f : node.transform.position.y,
@@ -721,10 +714,15 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         var spawnedNodes = new List<Node>();
         int inventoryIndex = 0;
 
-        foreach (var nd in bp.nodes)
+        for (int i = 0; i < bp.nodes.Count; i++)
         {
-            GameObject prefab = nd.prefab != null ? nd.prefab : FindPrefabByType(nd.nodeType);
-            if (prefab == null) continue;
+            var nd = bp.nodes[i];
+            if (nd.prefab == null)
+            {
+                Debug.LogError($"Blueprint node prefab is null at index {i} in scene '{CurrentSceneName}'.");
+                continue;
+            }
+            GameObject prefab = nd.prefab;
 
             Vector3 spawnPos;
             if (nd.isInInventory)
@@ -742,6 +740,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
             var node = go.GetComponent<Node>();
             if (node == null) continue;
 
+            node.SourcePrefab = prefab;
             node.IsInInventory = nd.isInInventory;
             _connMgr.RegisterNode(node);
             spawnedNodes.Add(node);

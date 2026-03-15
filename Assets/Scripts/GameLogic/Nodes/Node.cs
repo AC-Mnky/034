@@ -14,6 +14,7 @@ public abstract class Node : MonoBehaviour
 
     [HideInInspector] public List<NodeConnection> ActiveConnections = new List<NodeConnection>();
     [HideInInspector] public bool IsInInventory = true;
+    [HideInInspector] public GameObject SourcePrefab;
 
     public Rigidbody2D Rb { get; private set; }
     public Collider2D Col { get; private set; }
