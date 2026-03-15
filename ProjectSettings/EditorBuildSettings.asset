@@ -12,39 +12,39 @@ EditorBuildSettings:
     path: Assets/Scenes/LevelSelect.unity
     guid: 327755bfc90928e48bfc134bd844d81b
   - enabled: 1
-    path: Assets/Scenes/Level_0001.unity
+    path: "Assets/Scenes/\u8FDE\u63A5\u5F15\u5BFC.unity"
     guid: e263c009167483a4fb18ca9a29c806b3
   - enabled: 1
-    path: Assets/Scenes/Level_0002.unity
+    path: "Assets/Scenes/\u4E0D\u78B0\u649E\u8282\u70B9\u5F15\u5BFC.unity"
     guid: 8ebf645a160c6dc40bc6997da5cf4f82
   - enabled: 1
-    path: Assets/Scenes/Level_0003.unity
+    path: "Assets/Scenes/\u60AC\u6302\u5F15\u5BFC.unity"
     guid: 44ed583c7635f5a4e839913e117a38c9
   - enabled: 1
-    path: Assets/Scenes/Level_0004.unity
+    path: "Assets/Scenes/\u60AC\u6302\u5173\u5361\u7535\u673A.unity"
     guid: 9f7b21bd738922d49841e521461892a7
   - enabled: 1
-    path: Assets/Scenes/Level_0005.unity
+    path: "Assets/Scenes/\u7535\u52A8\u8F6E\u5B50\u5F15\u5BFC.unity"
     guid: afa139760e002c8499d02375cfc3541f
   - enabled: 1
-    path: Assets/Scenes/Level_0006.unity
+    path: "Assets/Scenes/\u60AC\u6302\u548C\u7535\u52A8\u8F6E\u5B50\u7EFC\u5408.unity"
     guid: d496ea2158ea24145b31059127887026
   - enabled: 1
-    path: Assets/Scenes/Level_0007.unity
+    path: "Assets/Scenes/\u7EC8\u70B9\u5728\u5DE6\u4FA7.unity"
     guid: 6b44b1a9057b1804ba640053c173c341
   - enabled: 1
-    path: Assets/Scenes/Level_0008.unity
+    path: "Assets/Scenes/\u63A8\u8FDB\u5668\u5F15\u5BFC.unity"
     guid: 53e1fce3b9163744d9e664b1dd8beb16
   - enabled: 1
-    path: Assets/Scenes/Level_0009.unity
+    path: "Assets/Scenes/\u63A8\u8FDB\u5668\u548C\u7535\u52A8\u8F6E\u5B50\u7EFC\u5408.unity"
     guid: 9b278ed4905e5624e9b3a4a8a817dfeb
   - enabled: 1
-    path: Assets/Scenes/Level_0010.unity
+    path: "Assets/Scenes/\u767B\u795E\u957F\u9636.unity"
     guid: 2d83f4fdcdca05e428833ab3d1e2ac11
   - enabled: 1
-    path: Assets/Scenes/Level_0011.unity
+    path: "Assets/Scenes/\u98DE\u884C\u7EC3\u4E60.unity"
     guid: 1809b634e5fab824f88c7a37ce20080a
   - enabled: 1
-    path: Assets/Scenes/Level_0012.unity
+    path: "Assets/Scenes/\u5F3A\u529B\u63A8\u8FDB\u5668\u5F15\u5BFC.unity"
     guid: 381540c777de20744933789482e68a8a
   m_configObjects: {}

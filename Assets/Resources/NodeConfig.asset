@@ -17,6 +17,6 @@ MonoBehaviour:
   MaxConnectNumber: 10
   SpringK: 125
   SpringDamping: 5
-  SpringBreakLength: 2
+  SpringBreakLength: 3
   AngularSpringK: 200
   AngularSpringDamping: 1
