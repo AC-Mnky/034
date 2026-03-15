@@ -3,7 +3,11 @@
   "WorkspaceRootPath": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{192853C9-97BE-8B26-5F5B-D505330DA423}|Assembly-CSharp.csproj|C:\\Users\\13465\\Desktop\\034Gamejam\\034\\assets\\partical\\scripts\\trailforward.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{192853C9-97BE-8B26-5F5B-D505330DA423}|Assembly-CSharp.csproj|c:\\users\\13465\\desktop\\034gamejam\\034\\assets\\scripts\\gamelogic\\level\\levelmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{192853C9-97BE-8B26-5F5B-D505330DA423}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\gamelogic\\level\\levelmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{192853C9-97BE-8B26-5F5B-D505330DA423}|Assembly-CSharp.csproj|c:\\users\\13465\\desktop\\034gamejam\\034\\assets\\partical\\scripts\\trailforward.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{192853C9-97BE-8B26-5F5B-D505330DA423}|Assembly-CSharp.csproj|solutionrelative:assets\\partical\\scripts\\trailforward.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -22,15 +26,28 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "LevelManager.cs",
+              "DocumentMoniker": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\Assets\\Scripts\\GameLogic\\Level\\LevelManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\GameLogic\\Level\\LevelManager.cs",
+              "ToolTip": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\Assets\\Scripts\\GameLogic\\Level\\LevelManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\GameLogic\\Level\\LevelManager.cs",
+              "ViewState": "AgIAANUCAAAAAAAAAAAewOICAAB1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-15T20:27:28.246Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "debug.cs",
               "DocumentMoniker": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\Assets\\Partical\\Scripts\\debug.cs",
               "RelativeDocumentMoniker": "Assets\\Partical\\Scripts\\debug.cs",
@@ -41,7 +58,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "TrailForward.cs",
               "DocumentMoniker": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\Assets\\Partical\\Scripts\\TrailForward.cs",
               "RelativeDocumentMoniker": "Assets\\Partical\\Scripts\\TrailForward.cs",
@@ -54,7 +71,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Node.cs",
               "DocumentMoniker": "C:\\Users\\13465\\Desktop\\034Gamejam\\034\\Assets\\Scripts\\GameLogic\\Nodes\\Node.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\GameLogic\\Nodes\\Node.cs",
