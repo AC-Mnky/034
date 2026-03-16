@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 {
@@ -13,6 +16,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     [Header("Scene References")]
     public List<Transform> BuildAreaVertices = new List<Transform>();
     public Transform IntroCameraAnchor;
+    [Min(0f)] public float IntroCameraOrthoSizeOverride;
     public Transform CameraAnchor;
     [Tooltip("Optional roots used to compute intro camera bounds. If empty, auto-detect map renderers/colliders in scene.")]
     public List<Transform> IntroBoundsRoots = new List<Transform>();
@@ -423,6 +427,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
                 camCtrl,
                 IntroCameraAnchor,
                 CameraAnchor,
+                IntroCameraOrthoSizeOverride,
                 IntroBoundsRoots,
                 _uiCanvas != null ? _uiCanvas.transform : null,
                 _areaVisualController != null ? _areaVisualController.InventoryVisualRoot : null,
@@ -476,6 +481,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
             runtimeCtrl,
             IntroCameraAnchor,
             CameraAnchor,
+            IntroCameraOrthoSizeOverride,
             IntroBoundsRoots,
             _uiCanvas != null ? _uiCanvas.transform : null,
             _areaVisualController != null ? _areaVisualController.InventoryVisualRoot : null,
@@ -530,6 +536,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
             runtimeCtrl,
             IntroCameraAnchor,
             CameraAnchor,
+            IntroCameraOrthoSizeOverride,
             IntroBoundsRoots,
             _uiCanvas != null ? _uiCanvas.transform : null,
             _areaVisualController != null ? _areaVisualController.InventoryVisualRoot : null,
@@ -935,10 +942,17 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         var introCtrl = _introSequenceController != null
             ? _introSequenceController
             : GetComponent<LevelIntroSequenceController>();
+#if UNITY_EDITOR
+        if (introCtrl == null && !Application.isPlaying)
+        {
+            introCtrl = Undo.AddComponent<LevelIntroSequenceController>(gameObject);
+        }
+#endif
         if (introCtrl != null)
         {
             introCtrl.DrawIntroGizmo(
                 IntroCameraAnchor,
+                IntroCameraOrthoSizeOverride,
                 IntroBoundsRoots,
                 _uiCanvas != null ? _uiCanvas.transform : null,
                 _areaVisualController != null ? _areaVisualController.InventoryVisualRoot : null,

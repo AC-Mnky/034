@@ -9,6 +9,7 @@ public class LevelIntroSequenceController : MonoBehaviour
         RuntimeCameraController runtimeCameraController,
         Transform introCameraAnchor,
         Transform cameraAnchor,
+        float introOrthoSizeOverride,
         List<Transform> introBoundsRoots,
         Transform uiRoot,
         Transform inventoryVisualRoot,
@@ -33,7 +34,7 @@ public class LevelIntroSequenceController : MonoBehaviour
             ? runtimeCameraController.DefaultOrthoSize
             : mainCamera.orthographicSize;
         introOrthoSize = ResolveIntroCameraOrthoSize(
-            mainCamera, introCameraAnchor, introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot, buildOrthoSize);
+            mainCamera, introCameraAnchor, introOrthoSizeOverride, introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot, buildOrthoSize);
         return true;
     }
 
@@ -42,6 +43,7 @@ public class LevelIntroSequenceController : MonoBehaviour
         RuntimeCameraController runtimeCameraController,
         Transform introCameraAnchor,
         Transform cameraAnchor,
+        float introOrthoSizeOverride,
         List<Transform> introBoundsRoots,
         Transform uiRoot,
         Transform inventoryVisualRoot,
@@ -53,6 +55,7 @@ public class LevelIntroSequenceController : MonoBehaviour
             runtimeCameraController,
             introCameraAnchor,
             cameraAnchor,
+            introOrthoSizeOverride,
             introBoundsRoots,
             uiRoot,
             inventoryVisualRoot,
@@ -83,6 +86,7 @@ public class LevelIntroSequenceController : MonoBehaviour
 
     public void DrawIntroGizmo(
         Transform introCameraAnchor,
+        float introOrthoSizeOverride,
         List<Transform> introBoundsRoots,
         Transform uiRoot,
         Transform inventoryVisualRoot,
@@ -94,7 +98,7 @@ public class LevelIntroSequenceController : MonoBehaviour
         Vector3 c;
         bool fromAnchor = introCameraAnchor != null;
         float introOrthoSize = ResolveIntroCameraOrthoSize(
-            cam, introCameraAnchor, introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot, cam.orthographicSize);
+            cam, introCameraAnchor, introOrthoSizeOverride, introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot, cam.orthographicSize);
 
         if (fromAnchor)
         {
@@ -146,10 +150,11 @@ public class LevelIntroSequenceController : MonoBehaviour
     }
 
     private static float ResolveIntroCameraOrthoSize(
-        Camera cam, Transform introCameraAnchor, List<Transform> introBoundsRoots,
+        Camera cam, Transform introCameraAnchor, float introOrthoSizeOverride, List<Transform> introBoundsRoots,
         Transform uiRoot, Transform inventoryVisualRoot, Transform buildVisualRoot, float fallbackOrthoSize)
     {
         if (cam == null) return fallbackOrthoSize;
+        if (introOrthoSizeOverride > 0f) return introOrthoSizeOverride;
         if (introCameraAnchor != null) return fallbackOrthoSize;
         if (!TryGetIntroBounds(introBoundsRoots, uiRoot, inventoryVisualRoot, buildVisualRoot, out var bounds))
             return fallbackOrthoSize;
