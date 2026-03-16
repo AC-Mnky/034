@@ -127,7 +127,7 @@ public class LevelSelectManager : MonoBehaviour, IButtonReceiver
     private void GenerateQuitButton()
     {
         CreateButton("Quit", ButtonShape.Square, QuitButtonColor,
-            new Vector2(1f, 0f), new Vector2(-60f, 60f));
+            new Vector2(0f, 0f), new Vector2(60f, 60f));
     }
 
     private void CreateButton(string buttonName, ButtonShape shape, Color color,
