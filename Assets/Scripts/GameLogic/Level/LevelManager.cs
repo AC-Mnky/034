@@ -261,7 +261,8 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
                 {
                     SaveBlueprintToDisk();
                     string next = LevelTopologyRuntime.GetNextScene(CurrentSceneName);
-                    if (string.IsNullOrWhiteSpace(next))
+                    bool canEnterNext = !string.IsNullOrWhiteSpace(next) && SaveManager.Instance.IsLevelUnlocked(next);
+                    if (!canEnterNext)
                         SceneManager.LoadScene(GameConfig.Instance.LevelSelectSceneName);
                     else
                         SceneManager.LoadScene(next);
