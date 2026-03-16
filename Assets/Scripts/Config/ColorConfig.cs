@@ -35,6 +35,9 @@ public class ColorConfig : ScriptableObject
     public Color CompletedLevelColor = Color.blue;
     public Color UnlockedLevelColor = Color.green;
     public Color LockedLevelColor = Color.gray;
+    public Material CompletedLevelMaterial;
+    public Material UnlockedLevelMaterial;
+    public Material LockedLevelMaterial;
 
     [Header("Level Select - Other")]
     public Color QuitButtonColor = Color.red;

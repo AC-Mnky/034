@@ -21,7 +21,6 @@ public class SaveManager
     public void CompleteLevel(string sceneName)
     {
         if (string.IsNullOrEmpty(sceneName)) return;
-        if (!GameConfig.Instance.LevelSceneNames.Contains(sceneName)) return;
         if (!_payload.completedLevelScenes.Contains(sceneName))
         {
             _payload.completedLevelScenes.Add(sceneName);
@@ -29,30 +28,25 @@ public class SaveManager
         }
     }
 
-    public bool IsLevelCompleted(int levelIndex)
+    public bool IsLevelCompleted(string sceneName)
     {
-        if (levelIndex < 0 || levelIndex >= GameConfig.Instance.TotalLevelNum) return false;
-        string sceneName = GameConfig.Instance.GetLevelSceneName(levelIndex);
+        if (string.IsNullOrWhiteSpace(sceneName)) return false;
         return _payload.completedLevelScenes.Contains(sceneName);
     }
 
-    public int GetUnlockedCount()
+    public bool IsLevelUnlocked(string sceneName)
     {
-        int count = GetValidCompletedLevelCount() + GameConfig.Instance.InitialUnlockedLevelNum;
-        return Mathf.Min(count, GameConfig.Instance.TotalLevelNum);
-    }
-
-    public bool IsLevelUnlocked(int levelIndex)
-    {
-        return levelIndex < GetUnlockedCount();
+        if (string.IsNullOrWhiteSpace(sceneName)) return false;
+        var completed = new HashSet<string>(_payload.completedLevelScenes);
+        return LevelTopologyRuntime.IsLevelUnlocked(sceneName, completed);
     }
 
     public bool DebugCompleteAllLevelsOnce()
     {
+        if (!LevelTopologyRuntime.HasTopology) return false;
         bool changed = false;
-        for (int i = 0; i < GameConfig.Instance.TotalLevelNum; i++)
+        foreach (var sceneName in LevelTopologyRuntime.GetAllLevelNames())
         {
-            string sceneName = GameConfig.Instance.GetLevelSceneName(i);
             if (string.IsNullOrEmpty(sceneName)) continue;
             if (_payload.completedLevelScenes.Contains(sceneName)) continue;
             _payload.completedLevelScenes.Add(sceneName);
@@ -89,20 +83,8 @@ public class SaveManager
             if (_payload.completedLevelScenes == null) _payload.completedLevelScenes = new List<string>();
             if (_payload.completedLevels == null) _payload.completedLevels = new List<int>();
 
-            // Migrate old index-based save data into scene-name-based save data.
-            bool migrated = false;
-            for (int i = 0; i < _payload.completedLevels.Count; i++)
-            {
-                int levelIndex = _payload.completedLevels[i];
-                if (levelIndex < 0 || levelIndex >= GameConfig.Instance.TotalLevelNum) continue;
-                string sceneName = GameConfig.Instance.GetLevelSceneName(levelIndex);
-                if (string.IsNullOrEmpty(sceneName)) continue;
-                if (_payload.completedLevelScenes.Contains(sceneName)) continue;
-                _payload.completedLevelScenes.Add(sceneName);
-                migrated = true;
-            }
             bool normalized = NormalizeCompletedLevelScenes();
-            if (migrated || normalized) Save();
+            if (normalized) Save();
         }
         else
         {
@@ -110,24 +92,11 @@ public class SaveManager
         }
     }
 
-    private int GetValidCompletedLevelCount()
-    {
-        if (_payload == null || _payload.completedLevelScenes == null) return 0;
-        var valid = new HashSet<string>(GameConfig.Instance.LevelSceneNames);
-        int count = 0;
-        for (int i = 0; i < _payload.completedLevelScenes.Count; i++)
-        {
-            if (valid.Contains(_payload.completedLevelScenes[i])) count++;
-        }
-        return count;
-    }
-
     private bool NormalizeCompletedLevelScenes()
     {
         if (_payload == null || _payload.completedLevelScenes == null) return false;
-        var valid = new HashSet<string>(GameConfig.Instance.LevelSceneNames);
         var normalized = _payload.completedLevelScenes
-            .Where(s => !string.IsNullOrEmpty(s) && valid.Contains(s))
+            .Where(s => !string.IsNullOrEmpty(s))
             .Distinct()
             .ToList();
 

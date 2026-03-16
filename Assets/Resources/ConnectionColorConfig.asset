@@ -13,6 +13,13 @@ MonoBehaviour:
   m_Name: ConnectionColorConfig
   m_EditorClassIdentifier: 
   ConnectionColor: {r: 1, g: 1, b: 1, a: 0.83137256}
+  ConnectionWidth: 0.1
   ChargedConnectionColor: {r: 0.9960785, g: 0.9960785, b: 0.19607845, a: 1}
+  ChargedConnectionWidth: 0.15
   BalloonConnectionColor: {r: 0.9960785, g: 0.5254902, b: 0.4431373, a: 1}
+  BalloonConnectionWidth: 0.1
+  LevelConnectionLockedColor: {r: 1, g: 1, b: 1, a: 0.35}
+  LevelConnectionLockedWidth: 0.06
+  LevelConnectionUnlockedColor: {r: 1, g: 1, b: 1, a: 1}
+  LevelConnectionUnlockedWidth: 0.1
   PreviewColor: {r: 0.8490566, g: 0.8490566, b: 0.8490566, a: 0.12941177}

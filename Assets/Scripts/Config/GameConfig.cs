@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "GameConfig", menuName = "Game/Game Config")]
 public class GameConfig : ScriptableObject
@@ -21,25 +20,10 @@ public class GameConfig : ScriptableObject
         }
     }
 
-    [Header("Levels")]
-    public int InitialUnlockedLevelNum = 1;
-    public int TotalLevelNum{get => LevelSceneNames.Count;}
-
     [Header("Scene Names")]
     public string LevelSelectSceneName = "LevelSelect";
 
     [Header("Camera")]
     public float MaxHorizontalSpan = 0.4f;
     public float MaxVerticalSpan = 0.4f;
-
-    [Header("Level Scene Names")]
-    public List<string> LevelSceneNames;
-
-    public string GetLevelSceneName(int index) => LevelSceneNames[index];
-
-    public int GetLevelSceneIndex(string sceneName)
-    {
-        if (string.IsNullOrEmpty(sceneName) || LevelSceneNames == null) return -1;
-        return LevelSceneNames.IndexOf(sceneName);
-    }
 }

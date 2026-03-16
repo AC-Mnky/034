@@ -6,7 +6,7 @@ public class ConnectionRenderer : MonoBehaviour
     public static ConnectionRenderer Instance { get; private set; }
 
     [Header("Line Settings")]
-    public float LineWidth = 0.05f;
+    [SerializeField] private float _fallbackLineWidth = 0.05f;
     public Material LineMaterial;
 
     private ConnectionManager _connMgr;
@@ -37,8 +37,8 @@ public class ConnectionRenderer : MonoBehaviour
             bool electrified = isDragRelated
                 ? _connMgr.WillConnectionBeElectrified(conn.NodeA, conn.NodeB, mergedPreviews)
                 : conn.IsElectrified();
-            Color color = GetConnectionColor(electrified, isDragRelated, conn.IsBalloonConnection);
-            DrawLine(conn.NodeA.transform.position, conn.NodeB.transform.position, color);
+            GetConnectionVisual(electrified, isDragRelated, conn.IsBalloonConnection, out var color, out var width);
+            DrawLine(conn.NodeA.transform.position, conn.NodeB.transform.position, color, width);
         }
 
         DrawPreviews(mergedPreviews);
@@ -59,8 +59,8 @@ public class ConnectionRenderer : MonoBehaviour
             if (a == null || b == null) continue;
             bool electrified = _connMgr.WillConnectionBeElectrified(a, b, mergedPreviews);
             bool isBalloonConnection = a is BalloonNode || b is BalloonNode;
-            Color color = GetConnectionColor(electrified, true, isBalloonConnection);
-            DrawLine(a.transform.position, b.transform.position, color);
+            GetConnectionVisual(electrified, true, isBalloonConnection, out var color, out var width);
+            DrawLine(a.transform.position, b.transform.position, color, width);
         }
     }
 
@@ -84,32 +84,40 @@ public class ConnectionRenderer : MonoBehaviour
         }
     }
 
-    private Color GetConnectionColor(bool electrified, bool isFaded, bool isBalloonConnection)
+    private void GetConnectionVisual(bool electrified, bool isFaded, bool isBalloonConnection, out Color color, out float width)
     {
         var cfg = ConnectionColorConfig.Instance;
         Color connectionColor = cfg != null ? cfg.ConnectionColor : Color.white;
         Color chargedColor = cfg != null ? cfg.ChargedConnectionColor : Color.green;
         Color previewColor = cfg != null ? cfg.PreviewColor : new Color(1f, 1f, 1f, 0.4f);
         Color balloonColor = cfg != null ? cfg.BalloonConnectionColor : new Color(1f, 0.8f, 0.2f, 1f);
+        float connectionWidth = cfg != null ? cfg.ConnectionWidth : _fallbackLineWidth;
+        float chargedWidth = cfg != null ? cfg.ChargedConnectionWidth : _fallbackLineWidth;
+        float balloonWidth = cfg != null ? cfg.BalloonConnectionWidth : _fallbackLineWidth;
 
         if (isBalloonConnection)
         {
-            return isFaded
+            width = balloonWidth;
+            color = isFaded
                 ? new Color(balloonColor.r, balloonColor.g, balloonColor.b, previewColor.a)
                 : balloonColor;
+            return;
         }
 
         if (electrified)
         {
-            return isFaded
+            width = chargedWidth;
+            color = isFaded
                 ? new Color(chargedColor.r, chargedColor.g, chargedColor.b, previewColor.a)
                 : chargedColor;
+            return;
         }
 
-        return isFaded ? previewColor : connectionColor;
+        width = connectionWidth;
+        color = isFaded ? previewColor : connectionColor;
     }
 
-    private void DrawLine(Vector3 from, Vector3 to, Color color)
+    private void DrawLine(Vector3 from, Vector3 to, Color color, float lineWidth)
     {
         LineRenderer lr;
         if (_activeCount < _linePool.Count)
@@ -132,8 +140,8 @@ public class ConnectionRenderer : MonoBehaviour
             _linePool.Add(lr);
         }
 
-        lr.startWidth = LineWidth;
-        lr.endWidth = LineWidth;
+        lr.startWidth = lineWidth;
+        lr.endWidth = lineWidth;
         lr.startColor = color;
         lr.endColor = color;
         lr.SetPosition(0, new Vector3(from.x, from.y, 0f));

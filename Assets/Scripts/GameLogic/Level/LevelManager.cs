@@ -41,7 +41,6 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     private Canvas _uiCanvas;
     private bool _startButtonInteractable = true;
     private string CurrentSceneName => SceneManager.GetActiveScene().name;
-    public int LevelIndex => ResolveLevelIndexBySceneName();
     private Coroutine _buildIntroRoutine;
     private Coroutine _hoverRecoverRoutine;
     private bool _buildIntroFinished;
@@ -247,19 +246,11 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
                 if (CurrentState == LevelState.Victory)
                 {
                     SaveBlueprintToDisk();
-                    int current = LevelIndex;
-                    if (current < 0)
-                    {
-                        Debug.LogWarning($"Current scene '{CurrentSceneName}' is not listed in GameConfig.LevelSceneNames.");
-                        SceneManager.LoadScene(GameConfig.Instance.LevelSelectSceneName);
-                        return true;
-                    }
-
-                    int next = current + 1;
-                    if (next >= GameConfig.Instance.TotalLevelNum)
+                    string next = LevelTopologyRuntime.GetNextScene(CurrentSceneName);
+                    if (string.IsNullOrWhiteSpace(next))
                         SceneManager.LoadScene(GameConfig.Instance.LevelSelectSceneName);
                     else
-                        SceneManager.LoadScene(GameConfig.Instance.GetLevelSceneName(next));
+                        SceneManager.LoadScene(next);
                 }
                 return true;
 
@@ -615,12 +606,6 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
             _areaVisualController.CancelFadeAndRestoreColors();
         if (_partAppearController != null)
             _partAppearController.CancelHiddenFadeAndRestore();
-    }
-
-    private int ResolveLevelIndexBySceneName()
-    {
-        var cfg = GameConfig.Instance;
-        return cfg != null ? cfg.GetLevelSceneIndex(CurrentSceneName) : -1;
     }
 
     private void UpdatePreviewButtonVisibility()

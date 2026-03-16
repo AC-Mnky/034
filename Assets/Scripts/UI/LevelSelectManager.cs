@@ -2,28 +2,36 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class LevelSelectManager : MonoBehaviour, IButtonReceiver
 {
-    [Header("Layout")]
-    public int Columns = 5;
-    public float ButtonSpacing = 120f;
-    public Vector2 GridOrigin = new Vector2(-240f, 100f);
-    public float ButtonSize = 1f;
+    [Header("Quit Button")]
+    public float QuitButtonSize = 1f;
 
-    private Color CompletedColor => ColorConfig.Instance.CompletedLevelColor;
-    private Color UnlockedColor => ColorConfig.Instance.UnlockedLevelColor;
-    private Color LockedColor => ColorConfig.Instance.LockedLevelColor;
     private Color QuitButtonColor => ColorConfig.Instance.QuitButtonColor;
 
     private Canvas _canvas;
+    private readonly List<AutoLevelButton> _levelButtons = new List<AutoLevelButton>();
+    private readonly HashSet<string> _registeredNames = new HashSet<string>();
 
     private void Start()
     {
         SaveManager.Instance.Load();
+        EnsureTopologyRenderer();
+        RebuildTopologyFromScene();
         CreateCanvas();
-        GenerateLevelButtons();
+        RefreshAutoButtons();
         GenerateQuitButton();
+    }
+
+    private void EnsureTopologyRenderer()
+    {
+        var existing = FindObjectOfType<LevelSelectTopologyRenderer>(true);
+        if (existing != null) return;
+
+        var go = new GameObject("LevelSelectTopologyRenderer");
+        go.AddComponent<LevelSelectTopologyRenderer>();
     }
 
     private void Update()
@@ -55,7 +63,8 @@ public class LevelSelectManager : MonoBehaviour, IButtonReceiver
         foreach (Transform child in _canvas.transform)
             Destroy(child.gameObject);
 
-        GenerateLevelButtons();
+        RebuildTopologyFromScene();
+        RefreshAutoButtons();
         GenerateQuitButton();
     }
 
@@ -79,26 +88,39 @@ public class LevelSelectManager : MonoBehaviour, IButtonReceiver
         }
     }
 
-    private void GenerateLevelButtons()
+    private void RebuildTopologyFromScene()
     {
-        for (int i = 0; i < GameConfig.Instance.TotalLevelNum; i++)
+        _levelButtons.Clear();
+        _registeredNames.Clear();
+        var found = FindObjectsOfType<AutoLevelButton>(true);
+        for (int i = 0; i < found.Length; i++)
         {
-            int row = i / Columns;
-            int col = i % Columns;
-            Vector2 pos = new Vector2(
-                GridOrigin.x + col * ButtonSpacing,
-                GridOrigin.y - row * ButtonSpacing);
+            var button = found[i];
+            string sceneName = button != null ? button.SceneName : null;
+            if (button == null || string.IsNullOrWhiteSpace(sceneName)) continue;
+            if (_registeredNames.Contains(sceneName))
+            {
+                Debug.LogWarning($"Duplicate AutoLevelButton scene name '{sceneName}'.");
+                continue;
+            }
+            _registeredNames.Add(sceneName);
+            _levelButtons.Add(button);
+        }
+        LevelTopologyRuntime.Rebuild(_levelButtons);
+    }
 
-            Color color;
-            if (SaveManager.Instance.IsLevelCompleted(i))
-                color = CompletedColor;
-            else if (SaveManager.Instance.IsLevelUnlocked(i))
-                color = UnlockedColor;
-            else
-                color = LockedColor;
+    private void RefreshAutoButtons()
+    {
+        for (int i = 0; i < _levelButtons.Count; i++)
+        {
+            var button = _levelButtons[i];
+            if (button == null) continue;
 
-            CreateButton($"Level_{i}", ButtonShape.Square, color,
-                new Vector2(0.5f, 0.5f), pos);
+            button.SetReceiver(this);
+            string levelName = button.SceneName;
+            bool completed = SaveManager.Instance.IsLevelCompleted(levelName);
+            bool unlocked = SaveManager.Instance.IsLevelUnlocked(levelName);
+            button.ApplyState(completed, unlocked);
         }
     }
 
@@ -119,7 +141,7 @@ public class LevelSelectManager : MonoBehaviour, IButtonReceiver
         rt.anchorMax = anchor;
         rt.pivot = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = anchoredPos;
-        float pixelSize = ButtonSize * 100f;
+        float pixelSize = QuitButtonSize * 100f;
         rt.sizeDelta = new Vector2(pixelSize, pixelSize);
 
         go.AddComponent<Image>().raycastTarget = true;
@@ -128,7 +150,7 @@ public class LevelSelectManager : MonoBehaviour, IButtonReceiver
         btn.ButtonName = buttonName;
         btn.Shape = shape;
         btn.ButtonColor = color;
-        btn.ButtonSize = Vector2.one * ButtonSize;
+        btn.ButtonSize = Vector2.one * QuitButtonSize;
         btn.SetReceiver(this);
         btn.ApplyVisual();
     }
@@ -145,16 +167,12 @@ public class LevelSelectManager : MonoBehaviour, IButtonReceiver
             return true;
         }
 
-        if (buttonName.StartsWith("Level_"))
+        if (!string.IsNullOrWhiteSpace(buttonName))
         {
-            string indexStr = buttonName.Substring("Level_".Length);
-            if (int.TryParse(indexStr, out int levelIndex))
+            if (SaveManager.Instance.IsLevelUnlocked(buttonName))
             {
-                if (SaveManager.Instance.IsLevelUnlocked(levelIndex))
-                {
-                    SceneManager.LoadScene(GameConfig.Instance.GetLevelSceneName(levelIndex));
-                    return true;
-                }
+                SceneManager.LoadScene(buttonName);
+                return true;
             }
         }
 
