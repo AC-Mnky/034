@@ -3,11 +3,14 @@ using UnityEngine;
 
 public class NodeDragHandler : MonoBehaviour
 {
+    private static readonly Collider2D[] OverlapResults = new Collider2D[64];
+
     private Node _node;
     private Camera _mainCamera;
     private bool _isDragging;
     private Vector2 _startPosition;
     private bool _wasInInventory;
+    private Vector2 _dragOffset;
 
     [HideInInspector] public Vector2[] BuildAreaPolygon;
     [HideInInspector] public Rect InventoryArea;
@@ -41,6 +44,7 @@ public class NodeDragHandler : MonoBehaviour
         _isDragging = true;
         _startPosition = transform.position;
         _wasInInventory = _node.IsInInventory;
+        _dragOffset = (Vector2)transform.position - GetMouseWorldPosition();
     }
 
     private void OnMouseDrag()
@@ -53,12 +57,11 @@ public class NodeDragHandler : MonoBehaviour
         }
         if (!_isDragging) return;
 
-        Vector3 screenPos = Input.mousePosition;
-        screenPos.z = -_mainCamera.transform.position.z;
-        Vector2 mousePos = _mainCamera.ScreenToWorldPoint(screenPos);
-        transform.position = new Vector3(mousePos.x, mousePos.y, transform.position.z);
+        Vector2 mousePos = GetMouseWorldPosition();
+        Vector2 targetPos = mousePos + _dragOffset;
+        transform.position = new Vector3(targetPos.x, targetPos.y, transform.position.z);
 
-        _node.IsInInventory = InventoryArea.Contains(mousePos);
+        _node.IsInInventory = InventoryArea.Contains(targetPos);
 
         _connMgr.Strategy.OnNodeDragged(_node, _connMgr);
 
@@ -106,23 +109,47 @@ public class NodeDragHandler : MonoBehaviour
 
     private bool HasOverlap(Vector2 pos)
     {
-        float checkRadius = 0.3f;
-        var hits = Physics2D.OverlapCircleAll(pos, checkRadius);
-        foreach (var hit in hits)
+        if (_node == null || _node.Col == null) return false;
+
+        Vector3 oldPos = transform.position;
+        bool movedForCheck = (Vector2)oldPos != pos;
+        if (movedForCheck)
         {
-            if (hit.gameObject == gameObject) continue;
-            if (hit.GetComponent<Node>() != null)
-                return true;
+            transform.position = new Vector3(pos.x, pos.y, oldPos.z);
+            Physics2D.SyncTransforms();
         }
+
+        var filter = new ContactFilter2D
+        {
+            useLayerMask = false,
+            useDepth = false,
+            useTriggers = true
+        };
+
+        int count = _node.Col.OverlapCollider(filter, OverlapResults);
+
+        if (movedForCheck)
+        {
+            transform.position = oldPos;
+            Physics2D.SyncTransforms();
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            var hit = OverlapResults[i];
+            if (hit == null) continue;
+            if (hit == _node.Col) continue;
+            if (hit.transform == transform || hit.transform.IsChildOf(transform)) continue;
+            return true;
+        }
+
         return false;
     }
 
     private bool IsMouseOnRotateHandle()
     {
         if (_mainCamera == null) return false;
-        Vector3 screenPos = Input.mousePosition;
-        screenPos.z = -_mainCamera.transform.position.z;
-        Vector2 mouseWorld = _mainCamera.ScreenToWorldPoint(screenPos);
+        Vector2 mouseWorld = GetMouseWorldPosition();
 
         var hits = Physics2D.OverlapPointAll(mouseWorld);
         foreach (var hit in hits)
@@ -131,5 +158,13 @@ public class NodeDragHandler : MonoBehaviour
                 return true;
         }
         return false;
+    }
+
+    private Vector2 GetMouseWorldPosition()
+    {
+        if (_mainCamera == null) return transform.position;
+        Vector3 screenPos = Input.mousePosition;
+        screenPos.z = -_mainCamera.transform.position.z;
+        return _mainCamera.ScreenToWorldPoint(screenPos);
     }
 }
