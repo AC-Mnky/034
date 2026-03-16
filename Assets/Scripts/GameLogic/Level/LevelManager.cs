@@ -926,8 +926,6 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     {
         if (CurrentState != LevelState.Run) return;
         if (!AreAllGoalsReached()) return;
-        if (ConnectionManager.Instance == null) return;
-        if (!ConnectionManager.Instance.AreAllNodesConnected()) return;
         EnterVictoryMode();
     }
 
