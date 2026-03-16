@@ -42,4 +42,8 @@ public class ColorConfig : ScriptableObject
     [Header("Node - Materials")]
     public Material UnchargedMaterial;
     public Material ChargedMaterial;
+
+    [Header("Goal - Materials")]
+    public Material GoalDefaultMaterial;
+    public Material GoalReachedMaterial;
 }

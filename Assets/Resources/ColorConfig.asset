@@ -25,3 +25,5 @@ MonoBehaviour:
   QuitButtonColor: {r: 1, g: 0, b: 0, a: 1}
   UnchargedMaterial: {fileID: 2100000, guid: 28f450a4744b6304bad22fbacfe3abe4, type: 2}
   ChargedMaterial: {fileID: 2100000, guid: e0c61ec8d9a3bef4f8798fd68c374f81, type: 2}
+  GoalDefaultMaterial: {fileID: 2100000, guid: bc09f6be86f2b424eb487a9c3b48de53, type: 2}
+  GoalReachedMaterial: {fileID: 2100000, guid: efa9bd8a7732a5847911c9a8b9bdb960, type: 2}

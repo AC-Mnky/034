@@ -46,6 +46,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     private Coroutine _hoverRecoverRoutine;
     private bool _buildIntroFinished;
     private bool _isHoverPreviewActive;
+    private readonly List<GoalTrigger> _goalTriggers = new List<GoalTrigger>();
 
     private void Awake()
     {
@@ -64,6 +65,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         if (_introSequenceController == null) _introSequenceController = gameObject.AddComponent<LevelIntroSequenceController>();
         _partAppearController = GetComponent<LevelPartAppearController>();
         if (_partAppearController == null) _partAppearController = gameObject.AddComponent<LevelPartAppearController>();
+        RefreshGoalTriggers();
 
         GenerateUI();
         RefreshAreaVisuals();
@@ -287,6 +289,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         _connMgr.CurrentState = LevelState.Build;
         IsInputLocked = false;
         _isHoverPreviewActive = false;
+        ResetGoalStates();
 
         if (_memoryBlueprint != null)
         {
@@ -349,6 +352,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
         CurrentState = LevelState.Run;
         _connMgr.CurrentState = LevelState.Run;
+        ResetGoalStates();
         _connMgr.InitializeAllForRun();
 
         foreach (var node in _connMgr.AllNodes)
@@ -376,6 +380,13 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
         SetActionButton("Next", ButtonShape.TriangleRight, ColorConfig.Instance.NextButtonColor);
         UpdatePreviewButtonVisibility();
+    }
+
+    public void NotifyGoalTriggered(GoalTrigger goal)
+    {
+        if (CurrentState != LevelState.Run) return;
+        if (goal != null) goal.SetReached(true);
+        TryEnterVictoryMode();
     }
 
     private void BeginBuildIntroSequence()
@@ -801,6 +812,45 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     {
         var bp = _memoryBlueprint ?? CaptureBlueprint();
         BlueprintData.SaveBlueprint(CurrentSceneName, bp);
+    }
+
+    private void RefreshGoalTriggers()
+    {
+        _goalTriggers.Clear();
+        _goalTriggers.AddRange(FindObjectsOfType<GoalTrigger>(true));
+    }
+
+    private void ResetGoalStates()
+    {
+        RefreshGoalTriggers();
+        for (int i = 0; i < _goalTriggers.Count; i++)
+        {
+            var goal = _goalTriggers[i];
+            if (goal == null) continue;
+            goal.SetReached(false);
+        }
+    }
+
+    private bool AreAllGoalsReached()
+    {
+        bool hasGoal = false;
+        for (int i = 0; i < _goalTriggers.Count; i++)
+        {
+            var goal = _goalTriggers[i];
+            if (goal == null) continue;
+            hasGoal = true;
+            if (!goal.IsReached) return false;
+        }
+        return hasGoal;
+    }
+
+    private void TryEnterVictoryMode()
+    {
+        if (CurrentState != LevelState.Run) return;
+        if (!AreAllGoalsReached()) return;
+        if (ConnectionManager.Instance == null) return;
+        if (!ConnectionManager.Instance.AreAllNodesConnected()) return;
+        EnterVictoryMode();
     }
 
     private void OnDrawGizmos()
