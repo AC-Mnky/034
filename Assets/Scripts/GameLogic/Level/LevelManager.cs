@@ -843,13 +843,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
             spawnedNodes.Add(node);
         }
 
-        foreach (var cd in bp.connections)
-        {
-            if (cd.nodeIndexA < spawnedNodes.Count && cd.nodeIndexB < spawnedNodes.Count)
-            {
-                _connMgr.AddConnection(spawnedNodes[cd.nodeIndexA], spawnedNodes[cd.nodeIndexB]);
-            }
-        }
+        RebuildConnectionsByPlacement();
     }
 
     private Vector3 GetInventorySlotPosition(int index)
@@ -864,6 +858,20 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         float x = startX - totalWidth * 0.5f + index * spacing;
 
         return new Vector3(x, y, 0f);
+    }
+
+    private void RebuildConnectionsByPlacement()
+    {
+        _connMgr.ClearAll();
+
+        for (int i = 0; i < _connMgr.AllNodes.Count; i++)
+        {
+            var node = _connMgr.AllNodes[i];
+            if (node == null || node.IsInInventory || !node.gameObject.activeSelf) continue;
+            _connMgr.Strategy.OnNodePlaced(node, _connMgr.AllNodes, _connMgr);
+        }
+
+        _connMgr.RefreshChargeStates();
     }
 
     private int CountInventoryNodes()
