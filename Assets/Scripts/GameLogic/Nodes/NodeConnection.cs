@@ -4,6 +4,7 @@ public class NodeConnection
 {
     public Node NodeA;
     public Node NodeB;
+    public bool IsBalloonConnection;
     public float RestLength;
     public bool IsBroken;
 
@@ -18,6 +19,7 @@ public class NodeConnection
     {
         NodeA = a;
         NodeB = b;
+        IsBalloonConnection = (a is BalloonNode) || (b is BalloonNode);
     }
 
     public void Initialize()
@@ -74,6 +76,9 @@ public class NodeConnection
 
         NodeA.Rb.AddForce(springForce);
         NodeB.Rb.AddForce(-springForce);
+
+        // Balloon connection only keeps radial spring; no torque exchange.
+        if (IsBalloonConnection) return;
 
         // Angular spring / tangential forces
         Vector2 delta = posB - posA;

@@ -40,6 +40,8 @@ public class ConnectionManager : MonoBehaviour
 
     public NodeConnection AddConnection(Node a, Node b)
     {
+        if (a == null || b == null) return null;
+        if (a is BalloonNode && b is BalloonNode) return null;
         if (HasConnectionBetween(a, b)) return null;
 
         var conn = new NodeConnection(a, b);

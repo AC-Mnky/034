@@ -61,6 +61,7 @@ public class DefaultConnectionStrategy : IConnectionStrategy
         var result = new List<(Node, Node)>();
         var candidates = allNodes
             .Where(n => n != node && !n.IsInInventory)
+            .Where(n => !(node is BalloonNode && n is BalloonNode))
             .Select(n => new { node = n, dist = Vector2.Distance(node.transform.position, n.transform.position) })
             .Where(x => x.dist >= cfg.MinConnectRadius && x.dist <= cfg.MaxConnectRadius)
             .OrderBy(x => x.dist)
@@ -79,6 +80,7 @@ public class DefaultConnectionStrategy : IConnectionStrategy
         var cfg = NodeConfig.Instance;
         return allNodes
             .Where(n => n != node && !n.IsInInventory)
+            .Where(n => !(node is BalloonNode && n is BalloonNode))
             .Where(n => !mgr.HasConnectionBetween(node, n))
             .Where(n => !HasActiveConnectionTo(n, node))
             .Select(n => new { node = n, dist = Vector2.Distance(node.transform.position, n.transform.position) })

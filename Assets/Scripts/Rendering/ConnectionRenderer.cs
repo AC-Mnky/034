@@ -37,7 +37,7 @@ public class ConnectionRenderer : MonoBehaviour
             bool electrified = isDragRelated
                 ? _connMgr.WillConnectionBeElectrified(conn.NodeA, conn.NodeB, mergedPreviews)
                 : conn.IsElectrified();
-            Color color = GetConnectionColor(electrified, isDragRelated);
+            Color color = GetConnectionColor(electrified, isDragRelated, conn.IsBalloonConnection);
             DrawLine(conn.NodeA.transform.position, conn.NodeB.transform.position, color);
         }
 
@@ -58,7 +58,8 @@ public class ConnectionRenderer : MonoBehaviour
         {
             if (a == null || b == null) continue;
             bool electrified = _connMgr.WillConnectionBeElectrified(a, b, mergedPreviews);
-            Color color = GetConnectionColor(electrified, true);
+            bool isBalloonConnection = a is BalloonNode || b is BalloonNode;
+            Color color = GetConnectionColor(electrified, true, isBalloonConnection);
             DrawLine(a.transform.position, b.transform.position, color);
         }
     }
@@ -83,12 +84,20 @@ public class ConnectionRenderer : MonoBehaviour
         }
     }
 
-    private Color GetConnectionColor(bool electrified, bool isFaded)
+    private Color GetConnectionColor(bool electrified, bool isFaded, bool isBalloonConnection)
     {
         var cfg = ConnectionColorConfig.Instance;
         Color connectionColor = cfg != null ? cfg.ConnectionColor : Color.white;
         Color chargedColor = cfg != null ? cfg.ChargedConnectionColor : Color.green;
         Color previewColor = cfg != null ? cfg.PreviewColor : new Color(1f, 1f, 1f, 0.4f);
+        Color balloonColor = cfg != null ? cfg.BalloonConnectionColor : new Color(1f, 0.8f, 0.2f, 1f);
+
+        if (isBalloonConnection)
+        {
+            return isFaded
+                ? new Color(balloonColor.r, balloonColor.g, balloonColor.b, previewColor.a)
+                : balloonColor;
+        }
 
         if (electrified)
         {
