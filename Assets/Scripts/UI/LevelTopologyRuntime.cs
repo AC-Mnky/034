@@ -4,7 +4,6 @@ public static class LevelTopologyRuntime
 {
     private class TopologyNode
     {
-        public bool IsAlwaysUnlocked;
         public readonly List<string> UnlockLevels = new List<string>();
     }
 
@@ -32,8 +31,6 @@ public static class LevelTopologyRuntime
                 node = new TopologyNode();
                 Nodes.Add(sceneName, node);
             }
-
-            node.IsAlwaysUnlocked = button.IsAlwaysUnlocked;
         }
 
         foreach (var button in buttons)
@@ -72,16 +69,27 @@ public static class LevelTopologyRuntime
     public static bool IsLevelUnlocked(string sceneName, ISet<string> completedScenes)
     {
         if (string.IsNullOrWhiteSpace(sceneName)) return false;
-        if (!Nodes.TryGetValue(sceneName, out var node)) return false;
-        if (node.IsAlwaysUnlocked) return true;
-        if (completedScenes == null || completedScenes.Count == 0) return false;
+        if (!Nodes.ContainsKey(sceneName)) return false;
+        if (completedScenes != null && completedScenes.Contains(sceneName)) return true;
 
+        var parentLevels = new List<string>();
         foreach (var pair in Nodes)
         {
-            if (!completedScenes.Contains(pair.Key)) continue;
-            if (pair.Value.UnlockLevels.Contains(sceneName)) return true;
+            if (pair.Value.UnlockLevels.Contains(sceneName))
+                parentLevels.Add(pair.Key);
         }
-        return false;
+
+        // Root level: no prerequisites.
+        if (parentLevels.Count == 0) return true;
+        if (completedScenes == null || completedScenes.Count == 0) return false;
+
+        // AND logic: all parent levels must be completed.
+        for (int i = 0; i < parentLevels.Count; i++)
+        {
+            if (!completedScenes.Contains(parentLevels[i]))
+                return false;
+        }
+        return true;
     }
 
     public static string GetNextScene(string sceneName)

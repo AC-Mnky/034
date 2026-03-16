@@ -9,7 +9,6 @@ using UnityEditor;
 public class AutoLevelButton : MonoBehaviour
 {
     [Header("Level")]
-    public bool IsAlwaysUnlocked;
     public List<AutoLevelButton> UnlockLevels = new List<AutoLevelButton>();
     public string SceneName => gameObject != null ? gameObject.name : string.Empty;
 
