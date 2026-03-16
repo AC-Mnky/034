@@ -101,6 +101,7 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         int diameter = Mathf.Max(4, Mathf.RoundToInt(Mathf.Min(size.x, size.y) * 96f));
         var tex = new Texture2D(diameter, diameter);
         var pixels = new Color[diameter * diameter];
+        Color transparentWhite = new Color(1f, 1f, 1f, 0f);
         float center = diameter * 0.5f;
         float rSq = center * center;
         for (int y = 0; y < diameter; y++)
@@ -109,11 +110,12 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
             {
                 float dx = x - center + 0.5f;
                 float dy = y - center + 0.5f;
-                pixels[y * diameter + x] = (dx * dx + dy * dy <= rSq) ? Color.white : Color.clear;
+                pixels[y * diameter + x] = (dx * dx + dy * dy <= rSq) ? Color.white : transparentWhite;
             }
         }
         tex.SetPixels(pixels);
         tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Clamp;
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, diameter, diameter), Vector2.one * 0.5f, 96f);
     }
@@ -124,7 +126,7 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         int h = Mathf.Max(4, Mathf.RoundToInt(size.y * 96f));
         var tex = new Texture2D(w, h);
         var pixels = new Color[w * h];
-        float cx = w * 0.5f;
+        Color transparentWhite = new Color(1f, 1f, 1f, 0f);
         float cy = h * 0.5f;
 
         Vector2 a, b, c;
@@ -146,12 +148,13 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
             for (int px = 0; px < w; px++)
             {
                 Vector2 pt = new Vector2(px + 0.5f, py + 0.5f);
-                pixels[py * w + px] = PointInTriangle(pt, a, b, c) ? Color.white : Color.clear;
+                pixels[py * w + px] = PointInTriangle(pt, a, b, c) ? Color.white : transparentWhite;
             }
         }
 
         tex.SetPixels(pixels);
         tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Clamp;
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, w, h), Vector2.one * 0.5f, 96f);
     }
