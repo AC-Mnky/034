@@ -15,20 +15,20 @@ MonoBehaviour:
   InventoryBackgroundColor: {r: 0, g: 0, b: 0, a: 0.3}
   BuildAreaBackgroundColor: {r: 0, g: 0, b: 0, a: 0.15}
   ExitButtonColor: {r: 1, g: 1, b: 1, a: 1}
-  StartButtonColor: {r: 0, g: 1, b: 0, a: 1}
+  StartButtonColor: {r: 0.07450981, g: 0.43921572, b: 0.9921569, a: 1}
   StopButtonColor: {r: 1, g: 0, b: 0, a: 1}
-  NextButtonColor: {r: 0, g: 0, b: 1, a: 1}
+  NextButtonColor: {r: 0, g: 0.9960785, b: 0, a: 1}
   DisabledButtonColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
   CompletedLevelColor: {r: 0, g: 0, b: 1, a: 1}
   UnlockedLevelColor: {r: 0, g: 1, b: 0, a: 1}
   LockedLevelColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  CompletedLevelMaterial: {fileID: 2100000, guid: efa9bd8a7732a5847911c9a8b9bdb960,
+  CompletedLevelMaterial: {fileID: 2100000, guid: 6a88fc17ed99a6240b138e76e84998fb,
     type: 2}
-  UnlockedLevelMaterial: {fileID: 2100000, guid: bc09f6be86f2b424eb487a9c3b48de53,
+  UnlockedLevelMaterial: {fileID: 2100000, guid: deffce748df3ba741a66a26b875c2063,
     type: 2}
-  LockedLevelMaterial: {fileID: 2100000, guid: 59ac19ce9149aac4eaaa293040ac9dc7, type: 2}
+  LockedLevelMaterial: {fileID: 2100000, guid: e7bb587abf118a64d9160a8bc82ea4f1, type: 2}
   QuitButtonColor: {r: 1, g: 0, b: 0, a: 1}
   UnchargedMaterial: {fileID: 2100000, guid: 28f450a4744b6304bad22fbacfe3abe4, type: 2}
   ChargedMaterial: {fileID: 2100000, guid: e0c61ec8d9a3bef4f8798fd68c374f81, type: 2}
-  GoalDefaultMaterial: {fileID: 2100000, guid: bc09f6be86f2b424eb487a9c3b48de53, type: 2}
-  GoalReachedMaterial: {fileID: 2100000, guid: efa9bd8a7732a5847911c9a8b9bdb960, type: 2}
+  GoalDefaultMaterial: {fileID: 2100000, guid: deffce748df3ba741a66a26b875c2063, type: 2}
+  GoalReachedMaterial: {fileID: 2100000, guid: 6a88fc17ed99a6240b138e76e84998fb, type: 2}
