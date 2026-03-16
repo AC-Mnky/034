@@ -86,19 +86,19 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     private static Sprite GenerateRectSprite(Vector2 size)
     {
-        int w = Mathf.Max(2, Mathf.RoundToInt(size.x * 32f));
-        int h = Mathf.Max(2, Mathf.RoundToInt(size.y * 32f));
+        int w = Mathf.Max(2, Mathf.RoundToInt(size.x * 96f));
+        int h = Mathf.Max(2, Mathf.RoundToInt(size.y * 96f));
         var tex = new Texture2D(w, h);
         var pixels = new Color[w * h];
         for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.white;
         tex.SetPixels(pixels);
         tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, w, h), Vector2.one * 0.5f, 32f);
+        return Sprite.Create(tex, new Rect(0, 0, w, h), Vector2.one * 0.5f, 96f);
     }
 
     private static Sprite GenerateCircleSprite(Vector2 size)
     {
-        int diameter = Mathf.Max(4, Mathf.RoundToInt(Mathf.Min(size.x, size.y) * 32f));
+        int diameter = Mathf.Max(4, Mathf.RoundToInt(Mathf.Min(size.x, size.y) * 96f));
         var tex = new Texture2D(diameter, diameter);
         var pixels = new Color[diameter * diameter];
         float center = diameter * 0.5f;
@@ -115,13 +115,13 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         tex.SetPixels(pixels);
         tex.filterMode = FilterMode.Bilinear;
         tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, diameter, diameter), Vector2.one * 0.5f, 32f);
+        return Sprite.Create(tex, new Rect(0, 0, diameter, diameter), Vector2.one * 0.5f, 96f);
     }
 
     private static Sprite GenerateTriangleSprite(Vector2 size, bool pointLeft)
     {
-        int w = Mathf.Max(4, Mathf.RoundToInt(size.x * 32f));
-        int h = Mathf.Max(4, Mathf.RoundToInt(size.y * 32f));
+        int w = Mathf.Max(4, Mathf.RoundToInt(size.x * 96f));
+        int h = Mathf.Max(4, Mathf.RoundToInt(size.y * 96f));
         var tex = new Texture2D(w, h);
         var pixels = new Color[w * h];
         float cx = w * 0.5f;
@@ -153,7 +153,7 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         tex.SetPixels(pixels);
         tex.filterMode = FilterMode.Bilinear;
         tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, w, h), Vector2.one * 0.5f, 32f);
+        return Sprite.Create(tex, new Rect(0, 0, w, h), Vector2.one * 0.5f, 96f);
     }
 
     private static bool PointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
