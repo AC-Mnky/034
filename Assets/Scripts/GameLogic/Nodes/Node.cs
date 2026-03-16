@@ -22,6 +22,9 @@ public abstract class Node : MonoBehaviour
     public bool IsConductive => CanCharge || CanConduct;
     public bool HasElectricity => CanCharge || IsCharged;
     private bool _defaultIsTrigger;
+    private ParticleSystem[] _particleSystems;
+    private bool _lastParticleEmissionEnabled;
+    private bool _hasParticleEmissionState;
 
     public string NodeType => GetType().Name;
 
@@ -41,6 +44,9 @@ public abstract class Node : MonoBehaviour
             _defaultIsTrigger = Col.isTrigger;
             Col.enabled = false;
         }
+
+        _particleSystems = GetComponentsInChildren<ParticleSystem>(true);
+        RefreshParticleEmission(force: true);
     }
 
     public void EnterRunMode()
@@ -78,6 +84,7 @@ public abstract class Node : MonoBehaviour
         }
 
         Rb.mass = Mass;
+        RefreshParticleEmission(force: true);
     }
 
     public void EnterBuildMode()
@@ -90,9 +97,16 @@ public abstract class Node : MonoBehaviour
             Col.isTrigger = _defaultIsTrigger;
             Col.enabled = true;
         }
+
+        RefreshParticleEmission(force: true);
     }
 
     public virtual void OnRuntimeClick() { }
+
+    private void LateUpdate()
+    {
+        RefreshParticleEmission(force: false);
+    }
 
     // Reference angular speed used by connection angular springs (rad/s).
     // Positive means CCW in Unity 2D; negative means clockwise.
@@ -104,10 +118,46 @@ public abstract class Node : MonoBehaviour
     public void SetChargedState(bool isCharged)
     {
         IsCharged = isCharged;
+        RefreshParticleEmission(force: false);
     }
 
     public int GetActiveConnectionCount()
     {
         return ActiveConnections.Count;
+    }
+
+    private void RefreshParticleEmission(bool force)
+    {
+        if (_particleSystems == null || _particleSystems.Length == 0) return;
+
+        bool shouldEmit = ShouldEmitParticles();
+        if (!force && _hasParticleEmissionState && _lastParticleEmissionEnabled == shouldEmit) return;
+
+        for (int i = 0; i < _particleSystems.Length; i++)
+        {
+            var ps = _particleSystems[i];
+            if (ps == null) continue;
+
+            var emission = ps.emission;
+            emission.enabled = shouldEmit;
+        }
+
+        _lastParticleEmissionEnabled = shouldEmit;
+        _hasParticleEmissionState = true;
+    }
+
+    private bool ShouldEmitParticles()
+    {
+        if (!gameObject.activeInHierarchy || IsInInventory) return false;
+
+        LevelState state = LevelState.Build;
+        if (LevelManager.Instance != null)
+            state = LevelManager.Instance.CurrentState;
+        else if (ConnectionManager.Instance != null)
+            state = ConnectionManager.Instance.CurrentState;
+
+        if (state != LevelState.Run) return false;
+        if (IsConductive && !HasElectricity) return false;
+        return true;
     }
 }
