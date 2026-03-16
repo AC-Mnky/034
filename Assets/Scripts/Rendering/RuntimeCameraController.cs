@@ -24,6 +24,8 @@ public class RuntimeCameraController : MonoBehaviour
     private bool _returning;
     private Vector3 _returnPos;
     private ZoomMode _zoomMode = ZoomMode.Free;
+    private float _onlyZoomOutSuspendUntil;
+    private float _cameraDistanceZoomSuspendUntil;
 
     private void Awake()
     {
@@ -67,6 +69,22 @@ public class RuntimeCameraController : MonoBehaviour
         enabled = true;
     }
 
+    public void SuspendOnlyZoomOutForSeconds(float seconds)
+    {
+        if (seconds <= 0f) return;
+        float until = Time.unscaledTime + seconds;
+        if (until > _onlyZoomOutSuspendUntil)
+            _onlyZoomOutSuspendUntil = until;
+    }
+
+    public void SuspendCameraDistanceZoomForSeconds(float seconds)
+    {
+        if (seconds <= 0f) return;
+        float until = Time.unscaledTime + seconds;
+        if (until > _cameraDistanceZoomSuspendUntil)
+            _cameraDistanceZoomSuspendUntil = until;
+    }
+
     private void LateUpdate()
     {
         if (_returning)
@@ -103,6 +121,8 @@ public class RuntimeCameraController : MonoBehaviour
     {
         if (_zoomMode == ZoomMode.OnlyZoomOut)
         {
+            if (Time.unscaledTime < _onlyZoomOutSuspendUntil)
+                return targetSize;
             // Orthographic size larger = zoom out (objects appear smaller).
             return Mathf.Max(targetSize, _cam.orthographicSize);
         }
@@ -143,17 +163,19 @@ public class RuntimeCameraController : MonoBehaviour
             if (node == null || node.IsInInventory) continue;
 
             Vector2 fromTarget = (Vector2)node.transform.position - centerOfMass;
-            Vector2 fromCamera = (Vector2)node.transform.position - currentCamPos;
-
             float neededFromTarget = Mathf.Max(
                 Mathf.Abs(fromTarget.x) / (GameConfig.Instance.MaxHorizontalSpan * aspect),
                 Mathf.Abs(fromTarget.y) / GameConfig.Instance.MaxVerticalSpan);
 
-            float neededFromCamera = Mathf.Max(
-                Mathf.Abs(fromCamera.x) / (GameConfig.Instance.MaxHorizontalSpan * aspect),
-                Mathf.Abs(fromCamera.y) / GameConfig.Instance.MaxVerticalSpan);
-
-            float needed = Mathf.Max(neededFromTarget, neededFromCamera);
+            float needed = neededFromTarget;
+            if (Time.unscaledTime >= _cameraDistanceZoomSuspendUntil)
+            {
+                Vector2 fromCamera = (Vector2)node.transform.position - currentCamPos;
+                float neededFromCamera = Mathf.Max(
+                    Mathf.Abs(fromCamera.x) / (GameConfig.Instance.MaxHorizontalSpan * aspect),
+                    Mathf.Abs(fromCamera.y) / GameConfig.Instance.MaxVerticalSpan);
+                needed = Mathf.Max(needed, neededFromCamera);
+            }
             if (needed > requiredHalf)
                 requiredHalf = needed;
         }

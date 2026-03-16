@@ -24,8 +24,9 @@ public class CameraConfig : ScriptableObject
     [Min(0f)] public float IntroHoldSeconds = 1f;
     [Min(0f)] public float IntroMoveSeconds = 3f;
     [Min(1f)] public float IntroBoundsScaleMultiplier = 1.2f;
-    [Min(0.01f)] public float HoverToIntroSeconds = 0.35f;
-    [Min(0.01f)] public float HoverReturnSeconds = 0.2f;
+    [Min(0.01f)] public float HoverToIntroSeconds = 1.0f;
+    [Min(0.01f)] public float HoverReturnSeconds = 0.5f;
+    [Min(0.01f)] public float RuntimeHoverToIntroSeconds = 0.5f;
 
     [Header("Part Appearance")]
     [Min(0.01f)] public float PartAppearSeconds = 0.5f;

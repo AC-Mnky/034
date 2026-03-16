@@ -220,7 +220,16 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
     public bool OnButtonDown(string buttonName)
     {
-        if (IsInputLocked && buttonName != "Exit")
+        bool allowActionButtonDuringPreview =
+            _isHoverPreviewActive &&
+            _actionButton != null &&
+            buttonName == _actionButton.ButtonName;
+        bool allowStartDuringBuildIntro =
+            IsInputLocked &&
+            CurrentState == LevelState.Build &&
+            buttonName == "Start";
+
+        if (IsInputLocked && buttonName != "Exit" && !allowActionButtonDuringPreview && !allowStartDuringBuildIntro)
             return true;
 
         switch (buttonName)
@@ -233,6 +242,7 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
                 return true;
 
             case "Start":
+                UpdateStartButtonState(true);
                 if (CurrentState == LevelState.Build && _startButtonInteractable)
                     EnterRunMode();
                 return true;
@@ -336,6 +346,13 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
     public void EnterRunMode()
     {
+        if (_buildIntroRoutine != null)
+        {
+            StopCoroutine(_buildIntroRoutine);
+            _buildIntroRoutine = null;
+            _buildIntroFinished = true;
+        }
+
         StopHoverPreviewImmediate();
         IsInputLocked = false;
         _memoryBlueprint = CaptureBlueprint();
@@ -363,7 +380,8 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     {
         if (CurrentState == LevelState.Victory) return;
 
-        StopHoverPreviewImmediate();
+        if (!_isHoverPreviewActive)
+            StopHoverPreviewImmediate();
         CurrentState = LevelState.Victory;
         _connMgr.CurrentState = LevelState.Victory;
 
@@ -478,14 +496,17 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         if (_areaVisualController != null)
             _areaVisualController.CancelFadeAndRestoreColors();
         SetBuildUIVisible(false);
-        SetActionButtonDisabledVisual();
         if (_partAppearController != null)
         {
             _partAppearController.CancelHiddenFadeAndRestore();
             _partAppearController.HideInventoryParts(_connMgr.AllNodes);
         }
 
-        float hoverToIntroSeconds = CameraConfig.Instance != null ? CameraConfig.Instance.HoverToIntroSeconds : 0.35f;
+        float hoverToIntroSeconds;
+        if (CurrentState == LevelState.Run || CurrentState == LevelState.Victory)
+            hoverToIntroSeconds = CameraConfig.Instance != null ? CameraConfig.Instance.RuntimeHoverToIntroSeconds : 0.35f;
+        else
+            hoverToIntroSeconds = CameraConfig.Instance != null ? CameraConfig.Instance.HoverToIntroSeconds : 0.35f;
         GetOrCreateIntroCameraController().TransitionTo(introPos, introOrthoSize, hoverToIntroSeconds);
     }
 
@@ -497,6 +518,13 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
         CancelHoverRecoverRoutine();
         if (_mainCamera == null || _introSequenceController == null) return;
         var runtimeCtrl = _mainCamera.GetComponent<RuntimeCameraController>();
+
+        if (CurrentState == LevelState.Run || CurrentState == LevelState.Victory)
+        {
+            TransitionBackToRuntimeCamera(runtimeCtrl);
+            return;
+        }
+
         if (!_introSequenceController.TryGetIntroCameraTargets(
             _mainCamera,
             runtimeCtrl,
@@ -542,11 +570,32 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
             _partAppearController.ForceShowInventoryParts(_connMgr.AllNodes);
         if (_areaVisualController != null)
             _areaVisualController.SetVisible(CurrentState == LevelState.Build && _buildIntroFinished);
+
+        if (CurrentState == LevelState.Run || CurrentState == LevelState.Victory)
+        {
+            if (_partAppearController != null)
+                _partAppearController.HideInventoryParts(_connMgr.AllNodes);
+            if (_mainCamera != null)
+            {
+                var runtimeCtrl = _mainCamera.GetComponent<RuntimeCameraController>();
+                if (runtimeCtrl != null)
+                {
+                    runtimeCtrl.StartFollowing(RuntimeCameraController.ZoomMode.OnlyZoomOut);
+                    runtimeCtrl.SuspendOnlyZoomOutForSeconds(runtimeCtrl.SmoothTime * 5f);
+                }
+            }
+            SetBuildUIVisible(false);
+            RestoreActionButtonVisualForCurrentState();
+            IsInputLocked = false;
+        }
     }
 
     private bool CanPreviewHover()
     {
-        return CurrentState == LevelState.Build
+        bool isPreviewState = CurrentState == LevelState.Build
+                              || CurrentState == LevelState.Run
+                              || CurrentState == LevelState.Victory;
+        return isPreviewState
                && _buildIntroRoutine == null
                && _buildIntroFinished
                && !_isHoverPreviewActive;
@@ -611,9 +660,53 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     private void UpdatePreviewButtonVisibility()
     {
         if (_previewButton == null) return;
-        bool visible = CurrentState == LevelState.Build && _buildIntroFinished && _buildIntroRoutine == null;
+        bool previewState = CurrentState == LevelState.Build
+                            || CurrentState == LevelState.Run
+                            || CurrentState == LevelState.Victory;
+        bool visible = previewState && _buildIntroFinished && _buildIntroRoutine == null;
         if (_previewButton.gameObject.activeSelf != visible)
             _previewButton.gameObject.SetActive(visible);
+    }
+
+    private void TransitionBackToRuntimeCamera(RuntimeCameraController runtimeCtrl)
+    {
+        var introCtrl = _mainCamera != null ? _mainCamera.GetComponent<IntroCameraController>() : null;
+        if (introCtrl != null)
+            introCtrl.StopCurrentTransition(false);
+
+        // Restore runtime camera follow directly to avoid returning to a stale cached position first.
+        RestoreRuntimeHoverState(runtimeCtrl);
+    }
+
+    private void RestoreRuntimeHoverState(RuntimeCameraController runtimeCtrl)
+    {
+        if (_partAppearController != null)
+        {
+            _partAppearController.CancelHiddenFadeAndRestore();
+            _partAppearController.HideInventoryParts(_connMgr.AllNodes);
+        }
+        if (_areaVisualController != null)
+            _areaVisualController.CancelFadeAndRestoreColors();
+
+        SetBuildUIVisible(false);
+        RestoreActionButtonVisualForCurrentState();
+
+        if (runtimeCtrl != null)
+        {
+            runtimeCtrl.StartFollowing(RuntimeCameraController.ZoomMode.OnlyZoomOut);
+            float cooldown = runtimeCtrl.SmoothTime * 5f;
+            runtimeCtrl.SuspendOnlyZoomOutForSeconds(cooldown);
+            runtimeCtrl.SuspendCameraDistanceZoomForSeconds(cooldown);
+        }
+        IsInputLocked = false;
+    }
+
+    private void RestoreActionButtonVisualForCurrentState()
+    {
+        if (CurrentState == LevelState.Run)
+            SetActionButton("Stop", ButtonShape.Square, ColorConfig.Instance.StopButtonColor);
+        else if (CurrentState == LevelState.Victory)
+            SetActionButton("Next", ButtonShape.TriangleRight, ColorConfig.Instance.NextButtonColor);
     }
 
     public Vector2[] GetBuildAreaPolygon()
