@@ -292,7 +292,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!108 &130939740
 Light:
   m_ObjectHideFlags: 0
@@ -695,25 +695,19 @@ MonoBehaviour:
       posX: 0
       posY: 0
       rotZ: 0
-    - prefab: {fileID: 8048060526449056003, guid: 6dd013383fe4d8a4dad787d33f1f6f11,
+    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
         type: 3}
       isInInventory: 1
       posX: 0
       posY: 0
       rotZ: 0
-    - prefab: {fileID: 8048060526449056003, guid: 6dd013383fe4d8a4dad787d33f1f6f11,
+    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
         type: 3}
       isInInventory: 1
       posX: 0
       posY: 0
       rotZ: 0
-    - prefab: {fileID: 8048060526449056003, guid: 6dd013383fe4d8a4dad787d33f1f6f11,
-        type: 3}
-      isInInventory: 1
-      posX: 0
-      posY: 0
-      rotZ: 0
-    - prefab: {fileID: 8048060526449056003, guid: 64ac83e9a9ecc0b43a80e79c0d54f70c,
+    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
         type: 3}
       isInInventory: 1
       posX: 0
