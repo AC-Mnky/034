@@ -794,6 +794,7 @@ GameObject:
   m_Component:
   - component: {fileID: 605446348}
   - component: {fileID: 605446347}
+  - component: {fileID: 605446349}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -819,6 +820,7 @@ MonoBehaviour:
   - {fileID: 665905592}
   - {fileID: 706120755}
   IntroCameraAnchor: {fileID: 0}
+  IntroCameraOrthoSizeOverride: 0
   CameraAnchor: {fileID: 615512764}
   IntroBoundsRoots: []
   InventoryAreaOffset:
@@ -841,25 +843,25 @@ MonoBehaviour:
       posX: 0
       posY: 0
       rotZ: 0
-    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
-        type: 3}
-      isInInventory: 1
-      posX: 0
-      posY: 0
-      rotZ: 0
-    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
-        type: 3}
-      isInInventory: 1
-      posX: 0
-      posY: 0
-      rotZ: 0
-    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
-        type: 3}
-      isInInventory: 1
-      posX: 0
-      posY: 0
-      rotZ: 0
     - prefab: {fileID: 4794396346771180178, guid: 70ca908905c0f6d41884863569830435,
+        type: 3}
+      isInInventory: 1
+      posX: 0
+      posY: 0
+      rotZ: 0
+    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
+        type: 3}
+      isInInventory: 1
+      posX: 0
+      posY: 0
+      rotZ: 0
+    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
+        type: 3}
+      isInInventory: 1
+      posX: 0
+      posY: 0
+      rotZ: 0
+    - prefab: {fileID: 8048060526449056003, guid: fb282557011f35143bc8c47774de07bb,
         type: 3}
       isInInventory: 1
       posX: 0
@@ -894,6 +896,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &605446349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 605446346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f418cfa84926599489f34b0a85627307, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &615512763
 GameObject:
   m_ObjectHideFlags: 0
@@ -1114,7 +1128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46483ec688610e94583449584f66ad81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  LineWidth: 0.05
+  _fallbackLineWidth: 0.05
   LineMaterial: {fileID: 0}
 --- !u!1 &706120754
 GameObject:
