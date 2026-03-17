@@ -805,46 +805,64 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
     private void RestoreFromBlueprint(BlueprintData bp)
     {
-        _connMgr.ClearAllNodes();
+        RestoreFromBlueprint(bp, true);
+    }
 
-        if (bp == null || bp.nodes.Count == 0) return;
-
-        var spawnedNodes = new List<Node>();
-        int inventoryIndex = 0;
-
-        for (int i = 0; i < bp.nodes.Count; i++)
+    private void RestoreFromBlueprint(BlueprintData bp, bool allowFallbackToDefault)
+    {
+        try
         {
-            var nd = bp.nodes[i];
-            if (nd.prefab == null)
-            {
-                Debug.LogError($"Blueprint node prefab is null at index {i} in scene '{CurrentSceneName}'.");
-                continue;
-            }
-            GameObject prefab = nd.prefab;
+            _connMgr.ClearAllNodes();
 
-            Vector3 spawnPos;
-            if (nd.isInInventory)
+            if (bp == null || bp.nodes == null || bp.nodes.Count == 0) return;
+
+            var spawnedNodes = new List<Node>();
+            int inventoryIndex = 0;
+
+            for (int i = 0; i < bp.nodes.Count; i++)
             {
-                spawnPos = GetInventorySlotPosition(inventoryIndex);
-                inventoryIndex++;
-            }
-            else
-            {
-                spawnPos = new Vector3(nd.posX, nd.posY, 0f);
+                var nd = bp.nodes[i];
+                if (nd == null || nd.prefab == null)
+                {
+                    throw new System.InvalidOperationException($"Blueprint node prefab is null at index {i}.");
+                }
+                GameObject prefab = nd.prefab;
+
+                Vector3 spawnPos;
+                if (nd.isInInventory)
+                {
+                    spawnPos = GetInventorySlotPosition(inventoryIndex);
+                    inventoryIndex++;
+                }
+                else
+                {
+                    spawnPos = new Vector3(nd.posX, nd.posY, 0f);
+                }
+
+                var spawnRot = Quaternion.Euler(prefab.transform.eulerAngles.x, prefab.transform.eulerAngles.y, nd.rotZ);
+                var go = Instantiate(prefab, spawnPos, spawnRot);
+                var node = go.GetComponent<Node>();
+                if (node == null)
+                    throw new System.InvalidOperationException($"Node component missing on prefab '{prefab.name}' at index {i}.");
+
+                node.SourcePrefab = prefab;
+                node.IsInInventory = nd.isInInventory;
+                _connMgr.RegisterNode(node);
+                spawnedNodes.Add(node);
             }
 
-            var spawnRot = Quaternion.Euler(prefab.transform.eulerAngles.x, prefab.transform.eulerAngles.y, nd.rotZ);
-            var go = Instantiate(prefab, spawnPos, spawnRot);
-            var node = go.GetComponent<Node>();
-            if (node == null) continue;
-
-            node.SourcePrefab = prefab;
-            node.IsInInventory = nd.isInInventory;
-            _connMgr.RegisterNode(node);
-            spawnedNodes.Add(node);
+            RebuildConnectionsByPlacement();
         }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"RestoreFromBlueprint failed in scene '{CurrentSceneName}'. {ex.Message}");
+            _connMgr.ClearAllNodes();
+            if (!allowFallbackToDefault) return;
 
-        RebuildConnectionsByPlacement();
+            _memoryBlueprint = InitialBlueprint != null ? InitialBlueprint.DeepCopy() : new BlueprintData();
+            Debug.LogWarning($"Current blueprint is abandoned in scene '{CurrentSceneName}', rebuilding from Initial Blueprint.");
+            RestoreFromBlueprint(_memoryBlueprint, false);
+        }
     }
 
     private Vector3 GetInventorySlotPosition(int index)

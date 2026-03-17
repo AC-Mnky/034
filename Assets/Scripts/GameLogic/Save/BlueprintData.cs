@@ -60,13 +60,25 @@ public class BlueprintData
     public static BlueprintData LoadBlueprint(string sceneName)
     {
         string path = GetFilePath(sceneName);
-        if (File.Exists(path))
+        if (!File.Exists(path)) return null;
+
+        try
         {
             string json = File.ReadAllText(path);
-            return JsonUtility.FromJson<BlueprintData>(json);
-        }
+            var data = JsonUtility.FromJson<BlueprintData>(json);
+            if (data == null || data.nodes == null || data.connections == null)
+            {
+                Debug.LogWarning($"Blueprint data is invalid for scene '{sceneName}', fallback to default blueprint.");
+                return null;
+            }
 
-        return null;
+            return data;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"Failed to load blueprint for scene '{sceneName}', fallback to default blueprint. {ex.Message}");
+            return null;
+        }
     }
 
     public static void DeleteBlueprint(string sceneName)
