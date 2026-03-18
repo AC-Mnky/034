@@ -2,6 +2,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(TriangleNodeGeometry))]
 [RequireComponent(typeof(TriangleRotateUI))]
+[DefaultExecutionOrder(-100)]
 public class TrianglePusher : Node
 {
     [Header("Pusher")]

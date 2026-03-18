@@ -47,8 +47,10 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     private string CurrentSceneName => SceneManager.GetActiveScene().name;
     private Coroutine _buildIntroRoutine;
     private Coroutine _hoverRecoverRoutine;
+    private Coroutine _enterRunRoutine;
     private bool _buildIntroFinished;
     private bool _isHoverPreviewActive;
+    private bool _isEnterRunPending;
     private readonly List<GoalTrigger> _goalTriggers = new List<GoalTrigger>();
 
     private void Awake()
@@ -291,6 +293,13 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
 
     public void EnterBuildMode()
     {
+        if (_enterRunRoutine != null)
+        {
+            StopCoroutine(_enterRunRoutine);
+            _enterRunRoutine = null;
+        }
+        _isEnterRunPending = false;
+
         CurrentState = LevelState.Build;
         _connMgr.CurrentState = LevelState.Build;
         IsInputLocked = false;
@@ -350,6 +359,32 @@ public class LevelManager : MonoBehaviour, IButtonReceiver, IButtonHoverReceiver
     }
 
     public void EnterRunMode()
+    {
+        if (CurrentState != LevelState.Build) return;
+        if (_isEnterRunPending) return;
+        if (!gameObject.activeInHierarchy) return;
+        _enterRunRoutine = StartCoroutine(EnterRunModeOnNextFixedUpdate());
+    }
+
+    private IEnumerator EnterRunModeOnNextFixedUpdate()
+    {
+        _isEnterRunPending = true;
+        IsInputLocked = true;
+        yield return new WaitForFixedUpdate();
+
+        _enterRunRoutine = null;
+        if (CurrentState != LevelState.Build)
+        {
+            _isEnterRunPending = false;
+            IsInputLocked = false;
+            yield break;
+        }
+
+        EnterRunModeInternal();
+        _isEnterRunPending = false;
+    }
+
+    private void EnterRunModeInternal()
     {
         if (_buildIntroRoutine != null)
         {

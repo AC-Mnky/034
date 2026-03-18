@@ -19,10 +19,24 @@ public class AutoArcGround : MonoBehaviour
     [Min(0f)] public float DoubleSidedGap = 0.02f;
     public Material GroundMaterial;
 
+    private const float RuntimeEpsilon = 1e-8f;
     private Mesh _mesh;
     private MeshFilter _meshFilter;
     private MeshRenderer _meshRenderer;
     private PolygonCollider2D _polygonCollider;
+    private bool _hasRuntimeState;
+    private bool _runtimeForceRefresh = true;
+    private Transform _runtimePointARef;
+    private Transform _runtimePointMiddleRef;
+    private Transform _runtimePointBRef;
+    private Transform _runtimeGroundRef;
+    private Material _runtimeMaterial;
+    private Vector2 _runtimePointAPos;
+    private Vector2 _runtimePointMiddlePos;
+    private Vector2 _runtimePointBPos;
+    private float _runtimeArcThickness;
+    private int _runtimeSegmentCount;
+    private float _runtimeDoubleSidedGap;
 
     private void Reset()
     {
@@ -47,7 +61,74 @@ public class AutoArcGround : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!Application.isPlaying)
+        {
+            RebuildArcGround();
+            return;
+        }
+
+        if (!ShouldRefreshInPlayMode())
+            return;
+
         RebuildArcGround();
+    }
+
+    private bool ShouldRefreshInPlayMode()
+    {
+        if (_runtimeForceRefresh)
+        {
+            CacheRuntimeState();
+            _runtimeForceRefresh = false;
+            return true;
+        }
+
+        bool refsChanged =
+            _runtimePointARef != PointA ||
+            _runtimePointMiddleRef != PointMiddle ||
+            _runtimePointBRef != PointB ||
+            _runtimeGroundRef != GroundInstance;
+        if (refsChanged)
+        {
+            CacheRuntimeState();
+            return true;
+        }
+
+        if (PointA == null || PointMiddle == null || PointB == null || GroundInstance == null)
+            return false;
+
+        Vector2 pointA = PointA.position;
+        Vector2 pointMiddle = PointMiddle.position;
+        Vector2 pointB = PointB.position;
+        bool changed =
+            !_hasRuntimeState ||
+            (pointA - _runtimePointAPos).sqrMagnitude > RuntimeEpsilon ||
+            (pointMiddle - _runtimePointMiddlePos).sqrMagnitude > RuntimeEpsilon ||
+            (pointB - _runtimePointBPos).sqrMagnitude > RuntimeEpsilon ||
+            Mathf.Abs(ArcThickness - _runtimeArcThickness) > RuntimeEpsilon ||
+            SegmentCount != _runtimeSegmentCount ||
+            Mathf.Abs(DoubleSidedGap - _runtimeDoubleSidedGap) > RuntimeEpsilon ||
+            GroundMaterial != _runtimeMaterial;
+
+        if (changed)
+            CacheRuntimeState();
+
+        return changed;
+    }
+
+    private void CacheRuntimeState()
+    {
+        _runtimePointARef = PointA;
+        _runtimePointMiddleRef = PointMiddle;
+        _runtimePointBRef = PointB;
+        _runtimeGroundRef = GroundInstance;
+        _runtimeMaterial = GroundMaterial;
+        _runtimePointAPos = PointA != null ? (Vector2)PointA.position : Vector2.zero;
+        _runtimePointMiddlePos = PointMiddle != null ? (Vector2)PointMiddle.position : Vector2.zero;
+        _runtimePointBPos = PointB != null ? (Vector2)PointB.position : Vector2.zero;
+        _runtimeArcThickness = ArcThickness;
+        _runtimeSegmentCount = SegmentCount;
+        _runtimeDoubleSidedGap = DoubleSidedGap;
+        _hasRuntimeState = true;
     }
 
     private void EnsureStructure()

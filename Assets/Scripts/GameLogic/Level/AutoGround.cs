@@ -19,6 +19,16 @@ public class AutoGround : MonoBehaviour
     [Header("Length Mapping")]
     [Min(0.0001f)] public float LengthPerScaleX = 1f;
 
+    private const float RuntimeEpsilon = 1e-8f;
+    private bool _hasRuntimeState;
+    private bool _runtimeForceRefresh = true;
+    private Transform _runtimePointARef;
+    private Transform _runtimePointBRef;
+    private Transform _runtimeGroundRef;
+    private Vector2 _runtimePointAPos;
+    private Vector2 _runtimePointBPos;
+    private float _runtimeLengthPerScaleX;
+
     private void Reset()
     {
         EnsureStructure();
@@ -42,7 +52,60 @@ public class AutoGround : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!Application.isPlaying)
+        {
+            UpdateGroundTransform();
+            return;
+        }
+
+        if (!ShouldRefreshInPlayMode())
+            return;
+
         UpdateGroundTransform();
+    }
+
+    private bool ShouldRefreshInPlayMode()
+    {
+        if (_runtimeForceRefresh)
+        {
+            CacheRuntimeState();
+            _runtimeForceRefresh = false;
+            return true;
+        }
+
+        bool refsChanged = _runtimePointARef != PointA || _runtimePointBRef != PointB || _runtimeGroundRef != GroundInstance;
+        if (refsChanged)
+        {
+            CacheRuntimeState();
+            return true;
+        }
+
+        if (PointA == null || PointB == null || GroundInstance == null)
+            return false;
+
+        Vector2 pointA = PointA.position;
+        Vector2 pointB = PointB.position;
+        bool changed =
+            !_hasRuntimeState ||
+            (pointA - _runtimePointAPos).sqrMagnitude > RuntimeEpsilon ||
+            (pointB - _runtimePointBPos).sqrMagnitude > RuntimeEpsilon ||
+            Mathf.Abs(LengthPerScaleX - _runtimeLengthPerScaleX) > RuntimeEpsilon;
+
+        if (changed)
+            CacheRuntimeState();
+
+        return changed;
+    }
+
+    private void CacheRuntimeState()
+    {
+        _runtimePointARef = PointA;
+        _runtimePointBRef = PointB;
+        _runtimeGroundRef = GroundInstance;
+        _runtimePointAPos = PointA != null ? (Vector2)PointA.position : Vector2.zero;
+        _runtimePointBPos = PointB != null ? (Vector2)PointB.position : Vector2.zero;
+        _runtimeLengthPerScaleX = LengthPerScaleX;
+        _hasRuntimeState = true;
     }
 
     private void EnsureStructure()

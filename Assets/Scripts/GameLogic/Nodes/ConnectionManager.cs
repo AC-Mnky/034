@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+[DefaultExecutionOrder(-200)]
 public class ConnectionManager : MonoBehaviour
 {
     public static ConnectionManager Instance { get; private set; }
