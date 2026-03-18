@@ -43,7 +43,9 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public void ApplyVisual()
     {
         if (_image == null) _image = GetComponent<Image>();
-        _image.sprite = GenerateShapeSprite(Shape, ButtonSize);
+        _image.sprite = (ButtonName == "Preview" && Shape == ButtonShape.Square)
+            ? GeneratePreviewCornerSprite(ButtonSize)
+            : GenerateShapeSprite(Shape, ButtonSize);
         _image.color = ButtonColor;
         _image.type = Image.Type.Simple;
         _image.preserveAspect = true;
@@ -92,6 +94,37 @@ public class GameButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         var pixels = new Color[w * h];
         for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.white;
         tex.SetPixels(pixels);
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, w, h), Vector2.one * 0.5f, 96f);
+    }
+
+    private static Sprite GeneratePreviewCornerSprite(Vector2 size)
+    {
+        int w = Mathf.Max(4, Mathf.RoundToInt(size.x * 96f));
+        int h = Mathf.Max(4, Mathf.RoundToInt(size.y * 96f));
+        int side = Mathf.Min(w, h);
+        int leg = Mathf.Clamp(Mathf.RoundToInt(side * 0.3f), 1, side);
+
+        var tex = new Texture2D(w, h);
+        var pixels = new Color[w * h];
+        Color transparentWhite = new Color(1f, 1f, 1f, 0f);
+
+        for (int py = 0; py < h; py++)
+        {
+            for (int px = 0; px < w; px++)
+            {
+                bool bottomLeft = px < leg && py < leg && (px + py) < leg;
+                bool bottomRight = px >= w - leg && py < leg && ((w - 1 - px) + py) < leg;
+                bool topLeft = px < leg && py >= h - leg && (px + (h - 1 - py)) < leg;
+                bool topRight = px >= w - leg && py >= h - leg && ((w - 1 - px) + (h - 1 - py)) < leg;
+                bool isTrianglePixel = bottomLeft || bottomRight || topLeft || topRight;
+                pixels[py * w + px] = isTrianglePixel ? Color.white : transparentWhite;
+            }
+        }
+
+        tex.SetPixels(pixels);
+        tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Clamp;
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, w, h), Vector2.one * 0.5f, 96f);
     }
