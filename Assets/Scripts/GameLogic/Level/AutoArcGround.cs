@@ -15,7 +15,7 @@ public class AutoArcGround : MonoBehaviour
 
     [Header("Arc Mesh")]
     [Min(0.01f)] public float ArcThickness = 0.6f;
-    [Range(4, 128)] public int SegmentCount = 24;
+    [Range(4, 1024)] public int SegmentCount = 128;
     [Min(0f)] public float DoubleSidedGap = 0.02f;
     public Material GroundMaterial;
 
