@@ -4686,6 +4686,11 @@ PrefabInstance:
       propertyPath: UnlockLevels.Array.data[0]
       value: 
       objectReference: {fileID: 2081752120}
+    - target: {fileID: 6283266990021259387, guid: 43c6730ae0c36ba4581f65ec899758b0,
+        type: 3}
+      propertyPath: UnlockLevels.Array.data[1]
+      value: 
+      objectReference: {fileID: 955552930}
     - target: {fileID: 7478366928761914909, guid: 43c6730ae0c36ba4581f65ec899758b0,
         type: 3}
       propertyPath: m_LocalPosition.x
