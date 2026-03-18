@@ -5,6 +5,7 @@ public static class LevelTopologyRuntime
     private class TopologyNode
     {
         public readonly List<string> UnlockLevels = new List<string>();
+        public string NextScene;
     }
 
     private static readonly Dictionary<string, TopologyNode> Nodes = new Dictionary<string, TopologyNode>();
@@ -39,6 +40,7 @@ public static class LevelTopologyRuntime
             if (!Nodes.TryGetValue(button.SceneName, out var fromNode)) continue;
 
             fromNode.UnlockLevels.Clear();
+            fromNode.NextScene = ResolveNextSceneName(button);
             if (button.UnlockLevels == null) continue;
 
             for (int i = 0; i < button.UnlockLevels.Count; i++)
@@ -96,8 +98,15 @@ public static class LevelTopologyRuntime
     {
         if (string.IsNullOrWhiteSpace(sceneName)) return null;
         if (!Nodes.TryGetValue(sceneName, out var node)) return null;
-        if (node.UnlockLevels.Count == 0) return null;
-        return node.UnlockLevels[0];
+        return node.NextScene;
+    }
+
+    private static string ResolveNextSceneName(AutoLevelButton button)
+    {
+        if (button == null || button.UnlockLevels == null || button.UnlockLevels.Count == 0) return null;
+        var first = button.UnlockLevels[0];
+        if (first == null) return null;
+        return string.IsNullOrWhiteSpace(first.SceneName) ? null : first.SceneName;
     }
 
     public static IEnumerable<string> GetAllLevelNames()
