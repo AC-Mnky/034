@@ -763,7 +763,7 @@ MonoBehaviour:
     height: 1.5
   InitialBlueprint:
     nodes:
-    - prefab: {fileID: 5713757247159889912, guid: 169b1f13397738341bae42cd9ba9658a,
+    - prefab: {fileID: 8048060526449056003, guid: 6dd013383fe4d8a4dad787d33f1f6f11,
         type: 3}
       isInInventory: 1
       posX: 0
