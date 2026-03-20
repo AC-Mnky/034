@@ -37,6 +37,7 @@ public class AutoArcGround : MonoBehaviour
     private float _runtimeArcThickness;
     private int _runtimeSegmentCount;
     private float _runtimeDoubleSidedGap;
+    private float _runtimePointMiddleZ;
 
     private void Reset()
     {
@@ -104,6 +105,7 @@ public class AutoArcGround : MonoBehaviour
             (pointA - _runtimePointAPos).sqrMagnitude > RuntimeEpsilon ||
             (pointMiddle - _runtimePointMiddlePos).sqrMagnitude > RuntimeEpsilon ||
             (pointB - _runtimePointBPos).sqrMagnitude > RuntimeEpsilon ||
+            Mathf.Abs(PointMiddle.position.z - _runtimePointMiddleZ) > RuntimeEpsilon ||
             Mathf.Abs(ArcThickness - _runtimeArcThickness) > RuntimeEpsilon ||
             SegmentCount != _runtimeSegmentCount ||
             Mathf.Abs(DoubleSidedGap - _runtimeDoubleSidedGap) > RuntimeEpsilon ||
@@ -125,6 +127,7 @@ public class AutoArcGround : MonoBehaviour
         _runtimePointAPos = PointA != null ? (Vector2)PointA.position : Vector2.zero;
         _runtimePointMiddlePos = PointMiddle != null ? (Vector2)PointMiddle.position : Vector2.zero;
         _runtimePointBPos = PointB != null ? (Vector2)PointB.position : Vector2.zero;
+        _runtimePointMiddleZ = PointMiddle != null ? PointMiddle.position.z : 0f;
         _runtimeArcThickness = ArcThickness;
         _runtimeSegmentCount = SegmentCount;
         _runtimeDoubleSidedGap = DoubleSidedGap;
@@ -255,8 +258,47 @@ public class AutoArcGround : MonoBehaviour
         Vector2 a = PointA.position;
         Vector2 m = PointMiddle.position;
         Vector2 b = PointB.position;
+        float middleZ = PointMiddle.position.z;
 
-        if (!TryGetCircumcenter(a, m, b, out Vector2 center))
+        Vector2 center;
+        float startAngle;
+        float middleAngle;
+        float span;
+        if ((a - b).sqrMagnitude < 1e-8f)
+        {
+            float diameter = Vector2.Distance(a, m);
+            if (diameter < 1e-5f)
+            {
+                _mesh.Clear();
+                _polygonCollider.pathCount = 0;
+                _meshRenderer.enabled = false;
+                _polygonCollider.enabled = false;
+                return;
+            }
+
+            center = (a + m) * 0.5f;
+            startAngle = Mathf.Atan2(a.y - center.y, a.x - center.x);
+            middleAngle = Mathf.Atan2(m.y - center.y, m.x - center.x);
+            span = GetSignedSpanThroughMiddle(startAngle, middleAngle, startAngle);
+        }
+        else
+        {
+            if (!TryGetCircumcenter(a, m, b, out center))
+            {
+                _mesh.Clear();
+                _polygonCollider.pathCount = 0;
+                _meshRenderer.enabled = false;
+                _polygonCollider.enabled = false;
+                return;
+            }
+
+            float endAngle = Mathf.Atan2(b.y - center.y, b.x - center.x);
+            startAngle = Mathf.Atan2(a.y - center.y, a.x - center.x);
+            middleAngle = Mathf.Atan2(m.y - center.y, m.x - center.x);
+            span = GetSignedSpanThroughMiddle(startAngle, middleAngle, endAngle);
+        }
+
+        if (Mathf.Abs(span) < 1e-5f)
         {
             _mesh.Clear();
             _polygonCollider.pathCount = 0;
@@ -269,11 +311,6 @@ public class AutoArcGround : MonoBehaviour
         float halfThickness = ArcThickness * 0.5f;
         float innerRadius = Mathf.Max(0.01f, radius - halfThickness);
         float outerRadius = radius + halfThickness;
-
-        float startAngle = Mathf.Atan2(a.y - center.y, a.x - center.x);
-        float middleAngle = Mathf.Atan2(m.y - center.y, m.x - center.x);
-        float endAngle = Mathf.Atan2(b.y - center.y, b.x - center.x);
-        float span = GetSignedSpanThroughMiddle(startAngle, middleAngle, endAngle);
 
         int segments = Mathf.Max(4, SegmentCount);
         int stripVertCount = (segments + 1) * 2;
@@ -298,10 +335,10 @@ public class AutoArcGround : MonoBehaviour
 
             int outerIdx = i * 2;
             int innerIdx = outerIdx + 1;
-            Vector3 outerFront = inst.InverseTransformPoint(new Vector3(outer.x, outer.y, halfGap));
-            Vector3 innerFront = inst.InverseTransformPoint(new Vector3(inner.x, inner.y, halfGap));
-            Vector3 outerBack = inst.InverseTransformPoint(new Vector3(outer.x, outer.y, -halfGap));
-            Vector3 innerBack = inst.InverseTransformPoint(new Vector3(inner.x, inner.y, -halfGap));
+            Vector3 outerFront = inst.InverseTransformPoint(new Vector3(outer.x, outer.y, middleZ + halfGap));
+            Vector3 innerFront = inst.InverseTransformPoint(new Vector3(inner.x, inner.y, middleZ + halfGap));
+            Vector3 outerBack = inst.InverseTransformPoint(new Vector3(outer.x, outer.y, middleZ - halfGap));
+            Vector3 innerBack = inst.InverseTransformPoint(new Vector3(inner.x, inner.y, middleZ - halfGap));
 
             verts[frontOffset + outerIdx] = outerFront;
             verts[frontOffset + innerIdx] = innerFront;
