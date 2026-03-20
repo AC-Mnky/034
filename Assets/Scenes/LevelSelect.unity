@@ -1494,7 +1494,7 @@ PrefabInstance:
     - target: {fileID: 6283266990021259387, guid: 43c6730ae0c36ba4581f65ec899758b0,
         type: 3}
       propertyPath: UnlockLevels.Array.size
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6283266990021259387, guid: 43c6730ae0c36ba4581f65ec899758b0,
         type: 3}
@@ -3748,18 +3748,18 @@ PrefabInstance:
     - target: {fileID: 6283266990021259387, guid: 43c6730ae0c36ba4581f65ec899758b0,
         type: 3}
       propertyPath: UnlockLevels.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6283266990021259387, guid: 43c6730ae0c36ba4581f65ec899758b0,
         type: 3}
       propertyPath: UnlockLevels.Array.data[0]
       value: 
-      objectReference: {fileID: 818557349}
+      objectReference: {fileID: 1246225546}
     - target: {fileID: 6283266990021259387, guid: 43c6730ae0c36ba4581f65ec899758b0,
         type: 3}
       propertyPath: UnlockLevels.Array.data[1]
       value: 
-      objectReference: {fileID: 1612245004}
+      objectReference: {fileID: 818557349}
     - target: {fileID: 7478366928761914909, guid: 43c6730ae0c36ba4581f65ec899758b0,
         type: 3}
       propertyPath: m_LocalPosition.x
